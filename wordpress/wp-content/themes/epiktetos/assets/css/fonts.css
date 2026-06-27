@@ -1,0 +1,33 @@
+/**
+ * Epiktetos self-hosted webfonts.
+ *
+ * Libre Baskerville (display/headings) and Inter (body/UI), latin subset,
+ * bundled locally as WOFF2 with font-display:swap. No external requests.
+ * Both families are licensed under the SIL Open Font License 1.1 —
+ * see assets/fonts/LICENSE.md.
+ */
+
+/* Libre Baskerville — display / headings */
+@font-face {
+	font-family: "Libre Baskerville";
+	font-style: normal;
+	font-weight: 400;
+	font-display: swap;
+	src: url("../fonts/libre-baskerville-400.woff2") format("woff2");
+}
+@font-face {
+	font-family: "Libre Baskerville";
+	font-style: normal;
+	font-weight: 700;
+	font-display: swap;
+	src: url("../fonts/libre-baskerville-700.woff2") format("woff2");
+}
+
+/* Inter — body / UI (variable, weights 400–600) */
+@font-face {
+	font-family: "Inter";
+	font-style: normal;
+	font-weight: 400 600;
+	font-display: swap;
+	src: url("../fonts/inter-variable.woff2") format("woff2");
+}

@@ -1,0 +1,84 @@
+# Operating system and editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+.cursor/
+.editor/
+
+# Local assistant and QA artifacts
+.claude/
+.codex/
+.codex*/
+screenshots/
+qa/
+probe/
+probes/
+
+# Environment and local tooling
+.env
+.env.*
+docker-compose.override.yml
+docker-compose.yml
+docker-data/
+mysql/
+db/
+php.ini
+design.md
+EPIKTETOS-DYNAMIC-BLOCKS-ROADMAP.md
+
+# Dependency directories
+node_modules/
+vendor/
+
+# Logs, archives, exports, and temporary files
+*.log
+*.tmp
+*.temp
+*.bak
+*.backup
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.sql
+*.sqlite
+*.sqlite3
+*.dump
+*.map
+
+# Local WordPress installation files
+wordpress/.htaccess
+wordpress/*.php
+wordpress/*.txt
+wordpress/*.html
+wordpress/wp-admin/
+wordpress/wp-includes/
+wordpress/wp-config.php
+wordpress/wp-config-*.php
+wordpress/plugin-backups/
+
+# WordPress runtime content
+wordpress/wp-content/uploads/
+wordpress/wp-content/upgrade/
+wordpress/wp-content/cache/
+wordpress/wp-content/ai1wm-backups/
+wordpress/wp-content/backup*/
+wordpress/wp-content/backups/
+wordpress/wp-content/data/
+wordpress/wp-content/languages/
+wordpress/wp-content/plugins/
+wordpress/wp-content/mu-plugins/
+wordpress/wp-content/plugin-backups/
+wordpress/wp-content/index.php
+
+# Bundled default themes from the local WordPress install
+wordpress/wp-content/themes/twentytwenty*/
+wordpress/wp-content/themes/index.php
+
+# Keep the Epiktetos theme in its current local path.
+!wordpress/
+!wordpress/wp-content/
+!wordpress/wp-content/themes/
+!wordpress/wp-content/themes/epiktetos/
+!wordpress/wp-content/themes/epiktetos/**

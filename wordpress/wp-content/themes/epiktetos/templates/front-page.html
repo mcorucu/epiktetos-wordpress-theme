@@ -1,0 +1,35 @@
+<!-- wp:template-part {"slug":"header","area":"header","tagName":"header"} /-->
+
+<!-- wp:group {"tagName":"main","className":"ts-main","anchor":"main-content","layout":{"type":"default"}} -->
+<main id="main-content" class="wp-block-group ts-main">
+	<!-- wp:shortcode -->
+	[epiktetos_hero]
+	<!-- /wp:shortcode -->
+
+	<!-- wp:group {"className":"ts-home","layout":{"type":"default"}} -->
+	<div class="wp-block-group ts-home">
+		<!-- wp:group {"className":"ts-home__content","layout":{"type":"default"}} -->
+		<div class="wp-block-group ts-home__content">
+			<!-- wp:shortcode -->
+			[epiktetos_latest_articles]
+			<!-- /wp:shortcode -->
+
+			<!-- wp:shortcode -->
+			[epiktetos_category_showcase]
+			<!-- /wp:shortcode -->
+		</div>
+		<!-- /wp:group -->
+
+		<!-- wp:group {"tagName":"div","className":"ts-home__aside","layout":{"type":"default"}} -->
+		<div class="wp-block-group ts-home__aside">
+			<!-- wp:shortcode -->
+			[epiktetos_sidebar]
+			<!-- /wp:shortcode -->
+		</div>
+		<!-- /wp:group -->
+	</div>
+	<!-- /wp:group -->
+</main>
+<!-- /wp:group -->
+
+<!-- wp:template-part {"slug":"footer","area":"footer","tagName":"footer"} /-->
