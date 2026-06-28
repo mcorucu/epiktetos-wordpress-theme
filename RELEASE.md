@@ -1,12 +1,13 @@
-# Epiktetos 1.0.0 Release Notes
+# Epiktetos 1.0.2 Release Notes
 
-Epiktetos 1.0.0 is the initial public release of the WordPress block theme.
+Epiktetos 1.0.2 packages the Epiktetos WordPress block theme with bundled local Sample Content for fresh installations and review environments.
 
 ## Highlights
 
 - Editorial block theme architecture for essays, journals, and publication-style sites.
 - Native WordPress templates, menus, taxonomies, and settings.
 - Polished homepage, archive, search, author, topic, and static page experiences.
+- Bundled local Sample Content with posts, pages, menus, taxonomies, comments, and featured images.
 
 ## Accessibility
 
@@ -51,7 +52,9 @@ Epiktetos 1.0.0 is the initial public release of the WordPress block theme.
 
 ## Sample Content
 
-- Demo and sample content workflows are supported for local review and editorial setup.
+- Sample Content is bundled inside the theme and does not require remote downloads or plugins.
+- The importer creates local posts, pages, menus, taxonomies, comments, theme options, and featured images.
+- Removal is scoped to theme-stamped sample content so user content is left untouched.
 
 ## WordPress.org Readiness
 

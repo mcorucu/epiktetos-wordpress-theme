@@ -1,0 +1,83 @@
+{
+    "locations": {
+        "primary": "primary",
+        "footer": "footer"
+    },
+    "menus": [
+        {
+            "slug": "footer",
+            "name": "Footer",
+            "items": [
+                {
+                    "title": "About",
+                    "type": "post_type",
+                    "object": "page",
+                    "object_slug": "about",
+                    "url": "http://localhost:8080/about/",
+                    "menu_order": 1,
+                    "parent_title": ""
+                },
+                {
+                    "title": "Topics",
+                    "type": "post_type",
+                    "object": "page",
+                    "object_slug": "topics",
+                    "url": "http://localhost:8080/topics/",
+                    "menu_order": 2,
+                    "parent_title": ""
+                },
+                {
+                    "title": "Contact",
+                    "type": "post_type",
+                    "object": "page",
+                    "object_slug": "contact",
+                    "url": "http://localhost:8080/contact/",
+                    "menu_order": 3,
+                    "parent_title": ""
+                }
+            ]
+        },
+        {
+            "slug": "primary",
+            "name": "Primary",
+            "items": [
+                {
+                    "title": "Home",
+                    "type": "custom",
+                    "object": "custom",
+                    "object_slug": "",
+                    "url": "http://localhost:8080/",
+                    "menu_order": 1,
+                    "parent_title": ""
+                },
+                {
+                    "title": "Topics",
+                    "type": "post_type",
+                    "object": "page",
+                    "object_slug": "topics",
+                    "url": "http://localhost:8080/topics/",
+                    "menu_order": 2,
+                    "parent_title": ""
+                },
+                {
+                    "title": "About",
+                    "type": "post_type",
+                    "object": "page",
+                    "object_slug": "about",
+                    "url": "http://localhost:8080/about/",
+                    "menu_order": 3,
+                    "parent_title": ""
+                },
+                {
+                    "title": "Contact",
+                    "type": "post_type",
+                    "object": "page",
+                    "object_slug": "contact",
+                    "url": "http://localhost:8080/contact/",
+                    "menu_order": 4,
+                    "parent_title": ""
+                }
+            ]
+        }
+    ]
+}

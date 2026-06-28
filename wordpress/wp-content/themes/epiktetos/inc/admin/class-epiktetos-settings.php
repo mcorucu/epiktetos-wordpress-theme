@@ -124,15 +124,15 @@ if ( ! class_exists( 'Epiktetos_Settings' ) ) {
 
 		/** Render a non-settings (custom) tab panel by kind. */
 		protected static function render_custom_panel( $kind, $version ) {
-			switch ( $kind ) {
-				case 'overview':
-					self::render_overview( $version );
-					break;
-				case 'sample':
-					echo '<div class="epi-tab-intro"><h2>' . esc_html__( 'Sample content', 'epiktetos' ) . '</h2><p>' . esc_html__( 'Create or remove local example posts so you can preview the editorial layouts.', 'epiktetos' ) . '</p></div>';
-					if ( class_exists( 'Epiktetos_Admin' ) ) {
-						Epiktetos_Admin::render_sample_content_panel();
-					}
+				switch ( $kind ) {
+					case 'overview':
+						self::render_overview( $version );
+						break;
+					case 'sample':
+						echo '<div class="epi-tab-intro"><h2>' . esc_html__( 'Sample Content', 'epiktetos' ) . '</h2><p>' . esc_html__( 'Create or remove the bundled local example publication.', 'epiktetos' ) . '</p></div>';
+						if ( class_exists( 'Epiktetos_Admin' ) ) {
+							Epiktetos_Admin::render_sample_content_panel();
+						}
 					break;
 				case 'advanced':
 					self::render_advanced();

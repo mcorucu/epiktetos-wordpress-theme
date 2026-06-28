@@ -143,123 +143,112 @@
 	function initMediaFields() {
 		var fields = Array.prototype.slice.call( document.querySelectorAll( '[data-epi-media-field]' ) );
 		if ( ! fields.length || ! window.wp || ! wp.media ) { return; }
-		var activeApplySelection = null;
 
 		document.addEventListener( 'click', function ( event ) {
-			if ( ! activeApplySelection || ! event.target.closest( '.media-modal .media-button-select' ) ) { return; }
-			if ( activeApplySelection() ) {
+			var select = event.target.closest( '[data-epi-media-select]' );
+			var remove = event.target.closest( '[data-epi-media-remove]' );
+			if ( select ) {
 				event.preventDefault();
-				event.stopPropagation();
+				openMediaFrame( select );
+			} else if ( remove ) {
+				event.preventDefault();
+				clearMediaField( remove );
 			}
-		}, true );
+		} );
 
-		fields.forEach( function ( field ) {
-			var input = field.querySelector( '[data-epi-media-input]' );
-			var preview = field.querySelector( '[data-epi-media-preview]' );
-			var name = field.querySelector( '[data-epi-media-name]' );
-			var detail = field.querySelector( '[data-epi-media-detail]' );
-			var select = field.querySelector( '[data-epi-media-select]' );
-			var remove = field.querySelector( '[data-epi-media-remove]' );
+		function getParts( field ) {
+			return {
+				input: field.querySelector( '[data-epi-media-input]' ),
+				preview: field.querySelector( '[data-epi-media-preview]' ),
+				name: field.querySelector( '[data-epi-media-name]' ),
+				detail: field.querySelector( '[data-epi-media-detail]' ),
+				select: field.querySelector( '[data-epi-media-select]' ),
+				remove: field.querySelector( '[data-epi-media-remove]' )
+			};
+		}
+
+		function openMediaFrame( select ) {
+			var field = select.closest( '[data-epi-media-field]' );
+			if ( ! field ) { return; }
+			var parts = getParts( field );
+			if ( ! parts.input ) { return; }
 			var library = ( field.getAttribute( 'data-library' ) || 'image' ).split( ',' ).filter( Boolean );
-			var frame;
-			if ( ! input || ! select ) { return; }
+			var frame = field._epiMediaFrame;
 
-			function applySelection() {
-				if ( ! frame || ! frame.state ) { return false; }
-				var selection = frame.state().get( 'selection' );
-				var selected = selection && selection.first ? selection.first() : null;
-				var attachment = selected && selected.toJSON ? selected.toJSON() : null;
-				if ( ! attachment ) {
-					var selectedNode = document.querySelector( '.media-modal li.attachment.selected' );
-					var selectedId = selectedNode ? selectedNode.getAttribute( 'data-id' ) : '';
-					var selectedModel = selectedId && window.wp && wp.media && wp.media.attachment ? wp.media.attachment( selectedId ) : null;
-					attachment = selectedModel && selectedModel.toJSON ? selectedModel.toJSON() : null;
-				}
-				if ( ! attachment ) { return false; }
-				var url = attachment.url || '';
-				input.value = attachment.id || '';
-				if ( preview ) {
-					preview.innerHTML = url ? '<img src="' + escapeAttr( url ) + '" alt="' + escapeAttr( attachment.alt || attachment.title || 'Selected asset' ) + '" />' : '';
-				}
-				if ( name ) {
-					name.textContent = attachment.filename || attachment.title || 'Selected asset';
-				}
-				if ( detail ) {
-					detail.textContent = mediaDetail( attachment );
-				}
-				if ( remove ) {
-					remove.hidden = false;
-				}
-				if ( select ) {
-					select.textContent = select.getAttribute( 'data-label-replace' ) || 'Replace';
-				}
-				if ( frame.close ) {
-					frame.close();
-				}
-				return true;
-			}
-
-			function bindToolbarFallback() {
-				[ 0, 250, 750 ].forEach( function ( delay ) {
-					window.setTimeout( function () {
-						var button = document.querySelector( '.media-modal .media-button-select' );
-						if ( ! button ) { return; }
-						if ( button._epiMediaHandler ) {
-							button.removeEventListener( 'click', button._epiMediaHandler, true );
-						}
-						button._epiMediaHandler = function ( event ) {
-							if ( applySelection() ) {
-								event.preventDefault();
-								event.stopPropagation();
-							}
-						};
-						button.addEventListener( 'click', button._epiMediaHandler, true );
-					}, delay );
-				} );
-			}
-
-			select.addEventListener( 'click', function () {
-				if ( frame ) {
-					activeApplySelection = applySelection;
-					frame.open();
-					bindToolbarFallback();
-					return;
-				}
-
+			if ( ! frame ) {
 				frame = wp.media( {
-					title: 'Select branding asset',
+					title: select.getAttribute( 'data-title' ) || 'Select image',
 					frame: 'select',
-					state: 'library',
-					button: { text: 'Use this asset' },
-					library: { type: library },
+					button: { text: select.getAttribute( 'data-button' ) || 'Use this image' },
+					library: { type: library.length > 1 ? library : library[0] },
 					multiple: false
 				} );
 
-				frame.on( 'select', applySelection );
-				frame.on( 'open', bindToolbarFallback );
-				frame.on( 'close', function () {
-					if ( activeApplySelection === applySelection ) {
-						activeApplySelection = null;
+				frame.on( 'select', function () {
+					var attachment = frame.state().get( 'selection' ).first();
+					if ( attachment ) {
+						updateMediaField( field, attachment.toJSON() );
 					}
 				} );
 
-				activeApplySelection = applySelection;
-				frame.open();
-				bindToolbarFallback();
-			} );
-
-			if ( remove ) {
-				remove.addEventListener( 'click', function () {
-					input.value = '';
-					if ( preview ) { preview.innerHTML = ''; }
-					if ( name ) { name.textContent = 'No asset selected'; }
-					if ( detail ) { detail.textContent = ''; }
-					remove.hidden = true;
-					if ( select ) {
-						select.textContent = select.getAttribute( 'data-label-empty' ) || 'Upload / Select';
+				frame.on( 'open', function () {
+					var selection = frame.state().get( 'selection' );
+					var id = parseInt( parts.input.value, 10 );
+					selection.reset();
+					if ( id && wp.media.attachment ) {
+						var attachment = wp.media.attachment( id );
+						attachment.fetch();
+						selection.add( attachment );
 					}
 				} );
+
+				field._epiMediaFrame = frame;
 			}
+
+			frame.open();
+		}
+
+		function updateMediaField( field, attachment ) {
+			var parts = getParts( field );
+			if ( ! parts.input || ! attachment || ! attachment.id ) { return; }
+			var url = attachment.url || ( attachment.sizes && attachment.sizes.medium && attachment.sizes.medium.url ) || '';
+			parts.input.value = parseInt( attachment.id, 10 ) || '';
+			if ( parts.preview ) {
+				parts.preview.innerHTML = url ? '<img src="' + escapeAttr( url ) + '" alt="' + escapeAttr( attachment.alt || attachment.title || 'Selected asset' ) + '" />' : '';
+			}
+			if ( parts.name ) {
+				parts.name.textContent = attachment.filename || attachment.title || 'Selected asset';
+			}
+			if ( parts.detail ) {
+				parts.detail.textContent = mediaDetail( attachment );
+			}
+			if ( parts.remove ) {
+				parts.remove.hidden = false;
+			}
+			if ( parts.select ) {
+				parts.select.textContent = parts.select.getAttribute( 'data-label-replace' ) || 'Replace';
+			}
+		}
+
+		function clearMediaField( remove ) {
+			var field = remove.closest( '[data-epi-media-field]' );
+			if ( ! field ) { return; }
+			var parts = getParts( field );
+			if ( parts.input ) { parts.input.value = ''; }
+			if ( parts.preview ) { parts.preview.innerHTML = ''; }
+			if ( parts.name ) { parts.name.textContent = 'No asset selected'; }
+			if ( parts.detail ) { parts.detail.textContent = ''; }
+			remove.hidden = true;
+			if ( parts.select ) {
+				parts.select.textContent = parts.select.getAttribute( 'data-label-empty' ) || 'Upload / Select';
+			}
+		}
+
+		fields.forEach( function ( field ) {
+			var input = field.querySelector( '[data-epi-media-input]' );
+			var select = field.querySelector( '[data-epi-media-select]' );
+			if ( ! input || ! select ) { return; }
+			field._epiMediaFrame = null;
 		} );
 	}
 

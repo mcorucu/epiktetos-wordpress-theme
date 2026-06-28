@@ -3,7 +3,7 @@
  * Epiktetos — admin suite (System, Tools, Sample Content, Theme health).
  *
  * Adds the management pages that make the theme feel like a finished product:
- * a system-health panel, maintenance tools, an idempotent demo importer, and
+ * a system-health panel, maintenance tools, an idempotent sample importer, and
  * a theme validator. All destructive actions are nonce-protected, capability-
  * gated, and use the POST→redirect→GET pattern with admin notices.
  *
@@ -18,10 +18,12 @@ if ( ! class_exists( 'Epiktetos_Admin' ) ) {
 
 	class Epiktetos_Admin {
 
-		const CAP        = 'edit_theme_options';
-		const DEMO_META  = '_epiktetos_demo';
-		const NONCE      = 'epiktetos_admin';
-		const SLUG       = 'epiktetos';
+		const CAP               = 'edit_theme_options';
+		const DEMO_META         = '_epiktetos_demo';
+		const SAMPLE_META       = '_epiktetos_sample_content';
+		const SAMPLE_MEDIA_META = '_epiktetos_sample_media_key';
+		const NONCE             = 'epiktetos_admin';
+		const SLUG              = 'epiktetos';
 
 		/** Theme option groups eligible for export/import. */
 		public static function option_keys() {
@@ -106,18 +108,19 @@ if ( ! class_exists( 'Epiktetos_Admin' ) ) {
 			if ( ! in_array( $page, self::admin_page_slugs(), true ) && false === strpos( (string) $hook, 'epiktetos' ) ) {
 				return;
 			}
-			$ver = function_exists( 'epiktetos_asset_ver' ) ? epiktetos_asset_ver( 'assets/css/admin.css' ) : null;
+			$ver         = function_exists( 'epiktetos_asset_ver' ) ? epiktetos_asset_ver( 'assets/css/admin.css' ) : null;
+			$needs_media = self::admin_page_needs_media( $page );
+			if ( $needs_media ) {
+				wp_enqueue_media();
+			}
 			wp_enqueue_style( 'epiktetos-admin', get_template_directory_uri() . '/assets/css/admin.css', array(), $ver );
 			wp_enqueue_script(
 				'epiktetos-admin',
 				get_template_directory_uri() . '/assets/js/admin.js',
-				array(),
+				$needs_media ? array( 'media-editor' ) : array(),
 				function_exists( 'epiktetos_asset_ver' ) ? epiktetos_asset_ver( 'assets/js/admin.js' ) : null,
 				true
 			);
-			if ( self::admin_page_needs_media( $page ) ) {
-				wp_enqueue_media();
-			}
 		}
 
 		protected static function admin_page_slugs() {
@@ -140,7 +143,7 @@ if ( ! class_exists( 'Epiktetos_Admin' ) ) {
 				return false;
 			}
 			$step = isset( $_GET['step'] ) ? sanitize_key( wp_unslash( $_GET['step'] ) ) : 'welcome';
-			return in_array( $step, array( 'logo', 'favicon' ), true );
+			return in_array( $step, array( 'branding', 'logo', 'favicon' ), true );
 		}
 
 		/* ============================================================
@@ -264,165 +267,493 @@ if ( ! class_exists( 'Epiktetos_Admin' ) ) {
 		}
 
 		/* ============================================================
-		   Demo importer (idempotent)
+		   Sample content importer (idempotent)
 		   ============================================================ */
 
-		/** Canonical demo dataset. Featured images are assigned from the
-		 *  media library at import time (cycled), so it works on any install. */
-		protected static function demo_categories() {
+		protected static function sample_content_dir() {
+			return trailingslashit( get_template_directory() ) . 'inc/sample-content';
+		}
+
+		protected static function sample_json( $file, $fallback = array() ) {
+			$path = self::sample_content_dir() . '/' . ltrim( $file, '/' );
+			if ( ! file_exists( $path ) || ! is_readable( $path ) ) {
+				return $fallback;
+			}
+			$raw = file_get_contents( $path );
+			if ( false === $raw ) {
+				return $fallback;
+			}
+			$data = json_decode( $raw, true );
+			return is_array( $data ) ? $data : $fallback;
+		}
+
+		protected static function sample_bundle() {
 			return array(
-				'technology' => array( 'Technology', 'Notes on tools, the web, and building things that last.' ),
-				'philosophy' => array( 'Philosophy', 'Ancient questions, examined for the modern reader.' ),
-				'psychology' => array( 'Psychology', 'The mind, attention, memory, and how we come to think.' ),
-				'history'    => array( 'History', 'The long view — people, ideas, and the patience of the past.' ),
+				'manifest'      => self::sample_json( 'manifest.json' ),
+				'posts'         => self::sample_json( 'posts.json' ),
+				'pages'         => self::sample_json( 'pages.json' ),
+				'taxonomies'    => self::sample_json( 'taxonomies.json', array( 'categories' => array(), 'tags' => array() ) ),
+				'menus'         => self::sample_json( 'menus.json', array( 'locations' => array(), 'menus' => array() ) ),
+				'theme_options' => self::sample_json( 'theme-options.json', array( 'options' => array(), 'refs' => array(), 'reading' => array() ) ),
+				'comments'      => self::sample_json( 'comments.json' ),
+				'media'         => self::sample_json( 'media.json' ),
 			);
 		}
 
-		protected static function demo_posts() {
-			return array(
-				array( 'the-quiet-web', 'The Quiet Web: Building for Longevity, Not Virality', 'technology', 'Why durable, slow-built websites outlast trend-driven ones — and how to build for the reader who arrives two years later.' ),
-				array( 'on-stillness', 'On Stillness: What the Stoics Knew About Attention', 'philosophy', 'A practical reading of ancient calm — and why a quiet mind is the rarest luxury of the modern feed.' ),
-				array( 'shape-of-memory', 'The Shape of Memory: Why We Remember Stories, Not Facts', 'psychology', 'Narrative is how the mind files the world. What that means for how we read, learn, and forget.' ),
-				array( 'slow-letters', 'Slow Letters: Correspondence in an Age Before Speed', 'history', 'When a single reply took weeks, words carried more weight. Lessons from the patient web of the post.' ),
-			);
+		protected static function sample_manifest_counts() {
+			$manifest = self::sample_json( 'manifest.json' );
+			return isset( $manifest['counts'] ) && is_array( $manifest['counts'] ) ? $manifest['counts'] : array();
 		}
 
-		/**
-		 * Whether the full polished demo is already present: each of the four
-		 * canonical categories has five or more published posts. Used to keep
-		 * the small starter importer from adding duplicate placeholder posts
-		 * on top of a finished demo install.
-		 */
 		public static function full_demo_present() {
-			foreach ( array_keys( self::demo_categories() ) as $slug ) {
-				$term = get_category_by_slug( $slug );
-				if ( ! $term ) {
-					return false;
-				}
-				$n = count( get_posts( array(
-					'post_type'   => 'post',
-					'post_status' => 'publish',
-					'numberposts' => 5,
-					'fields'      => 'ids',
-					'category'    => $term->term_id,
-				) ) );
-				if ( $n < 5 ) {
+			$posts = self::sample_json( 'posts.json' );
+			if ( empty( $posts ) ) {
+				return false;
+			}
+			foreach ( $posts as $post ) {
+				$slug = isset( $post['slug'] ) ? sanitize_title( $post['slug'] ) : '';
+				if ( ! $slug || ! get_page_by_path( $slug, OBJECT, 'post' ) ) {
 					return false;
 				}
 			}
 			return true;
 		}
 
-		/**
-		 * Create sample content. Idempotent: upserts by slug and stamps a marker
-		 * so reset can safely remove only what the importer owns. If the full
-		 * demo is already present, the starter set is skipped entirely so the
-		 * polished demo never gains stray placeholder posts.
-		 *
-		 * @param bool $dry Preview only.
-		 * @return array{created:int,updated:int,full:bool}
-		 */
 		public static function demo_import( $dry = false ) {
-			$created = 0;
-			$updated = 0;
-
-			// Guard: a complete demo is already installed — adding the small
-			// starter set here would create confusing duplicate posts.
-			if ( self::full_demo_present() ) {
-				return array( 'created' => 0, 'updated' => 0, 'full' => true );
+			$bundle  = self::sample_bundle();
+			$preview = self::sample_preview_counts( $bundle );
+			if ( $dry ) {
+				return array( 'created' => $preview['created'], 'updated' => $preview['updated'], 'full' => false );
 			}
 
-			// Featured images: reuse existing image attachments, cycled.
-			$images = get_posts( array( 'post_type' => 'attachment', 'post_mime_type' => 'image', 'numberposts' => 20, 'post_status' => 'inherit', 'fields' => 'ids' ) );
-			$ii = 0;
+			$media_ids = self::import_sample_media( $bundle['media'] );
+			$term_ids  = self::import_sample_terms( $bundle['taxonomies'] );
+			$post_ids  = array();
+			$page_ids  = array();
+			$created   = 0;
+			$updated   = 0;
 
-			$cat_ids = array();
-			foreach ( self::demo_categories() as $slug => $cfg ) {
-				$term = get_category_by_slug( $slug );
-				if ( ! $term ) {
-					if ( ! $dry ) {
-						$res = wp_insert_term( $cfg[0], 'category', array( 'slug' => $slug, 'description' => $cfg[1] ) );
-						$cat_ids[ $slug ] = is_wp_error( $res ) ? 0 : $res['term_id'];
-					}
-					$created++;
-				} else {
-					$cat_ids[ $slug ] = $term->term_id;
+			foreach ( $bundle['pages'] as $page ) {
+				$result = self::upsert_sample_post( $page, 'page', $media_ids, $term_ids );
+				if ( $result['id'] ) {
+					$page_ids[ $result['slug'] ] = $result['id'];
 				}
+				$created += $result['created'];
+				$updated += $result['updated'];
 			}
 
-			foreach ( self::demo_posts() as $p ) {
-				list( $slug, $title, $cat_slug, $excerpt ) = $p;
-				$existing = get_page_by_path( $slug, OBJECT, 'post' );
-				if ( $existing ) {
-					$updated++;
-				} else {
-					$created++;
+			foreach ( $bundle['posts'] as $post ) {
+				$result = self::upsert_sample_post( $post, 'post', $media_ids, $term_ids );
+				if ( $result['id'] ) {
+					$post_ids[ $result['slug'] ] = $result['id'];
 				}
-				if ( $dry ) {
-					continue;
-				}
-				$arr = array(
-					'post_title'   => $title,
-					'post_name'    => $slug,
-					'post_status'  => 'publish',
-					'post_type'    => 'post',
-					'post_excerpt' => $excerpt,
-					'post_author'  => get_current_user_id(),
-					'post_content' => $existing ? $existing->post_content : '<!-- wp:paragraph --><p>Demo article body. Replace with your own writing.</p><!-- /wp:paragraph -->',
-				);
-				if ( $existing ) {
-					$arr['ID'] = $existing->ID;
-					$pid = wp_update_post( $arr );
-				} else {
-					$pid = wp_insert_post( $arr );
-				}
-				if ( $pid && ! is_wp_error( $pid ) ) {
-					update_post_meta( $pid, self::DEMO_META, 1 );
-					if ( ! empty( $cat_ids[ $cat_slug ] ) ) {
-						wp_set_post_categories( $pid, array( (int) $cat_ids[ $cat_slug ] ) );
-					}
-					if ( $images && ! has_post_thumbnail( $pid ) ) {
-						set_post_thumbnail( $pid, $images[ $ii % count( $images ) ] );
-						$ii++;
-					}
-				}
+				$created += $result['created'];
+				$updated += $result['updated'];
 			}
 
-			if ( ! $dry ) {
-				self::flush_all_caches();
-			}
+			self::import_sample_comments( $bundle['comments'], $post_ids );
+			self::import_sample_menus( $bundle['menus'], $post_ids, $page_ids, $term_ids );
+			self::apply_sample_options( $bundle['theme_options'], $post_ids, $page_ids, $media_ids, $term_ids );
+			self::flush_all_caches();
+			flush_rewrite_rules();
+
 			return array( 'created' => $created, 'updated' => $updated, 'full' => false );
 		}
 
-		/**
-		 * Remove only importer-owned demo posts (never user content).
-		 *
-		 * @param bool $dry Preview only.
-		 * @return array{deleted:int}
-		 */
+		protected static function sample_preview_counts( $bundle ) {
+			$created = 0;
+			$updated = 0;
+			foreach ( array( 'posts' => 'post', 'pages' => 'page' ) as $key => $type ) {
+				foreach ( $bundle[ $key ] as $item ) {
+					$slug = isset( $item['slug'] ) ? sanitize_title( $item['slug'] ) : '';
+					if ( ! $slug ) {
+						continue;
+					}
+					if ( get_page_by_path( $slug, OBJECT, $type ) ) {
+						$updated++;
+					} else {
+						$created++;
+					}
+				}
+			}
+			foreach ( $bundle['media'] as $media ) {
+				$key = isset( $media['key'] ) ? sanitize_file_name( $media['key'] ) : '';
+				if ( $key && ! self::find_sample_attachment( $key ) ) {
+					$created++;
+				}
+			}
+			return array( 'created' => $created, 'updated' => $updated );
+		}
+
+		protected static function import_sample_media( $media_items ) {
+			$ids = array();
+			if ( empty( $media_items ) ) {
+				return $ids;
+			}
+			require_once ABSPATH . 'wp-admin/includes/image.php';
+			foreach ( $media_items as $media ) {
+				$key  = isset( $media['key'] ) ? sanitize_file_name( $media['key'] ) : '';
+				$file = isset( $media['file'] ) ? sanitize_file_name( $media['file'] ) : $key;
+				if ( ! $key || ! $file ) {
+					continue;
+				}
+				$existing = self::find_sample_attachment( $key );
+				if ( $existing ) {
+					$ids[ $key ] = $existing;
+					continue;
+				}
+				$source = self::sample_content_dir() . '/media/' . $file;
+				if ( ! file_exists( $source ) || ! is_readable( $source ) ) {
+					continue;
+				}
+				$bits = wp_upload_bits( $file, null, file_get_contents( $source ) );
+				if ( ! empty( $bits['error'] ) || empty( $bits['file'] ) ) {
+					continue;
+				}
+				$type = wp_check_filetype( $bits['file'] );
+				$id   = wp_insert_attachment(
+					array(
+						'post_title'     => isset( $media['title'] ) ? sanitize_text_field( $media['title'] ) : preg_replace( '/\.[^.]+$/', '', $file ),
+						'post_excerpt'   => isset( $media['caption'] ) ? wp_kses_post( $media['caption'] ) : '',
+						'post_content'   => isset( $media['description'] ) ? wp_kses_post( $media['description'] ) : '',
+						'post_mime_type' => $type['type'],
+						'post_status'    => 'inherit',
+					),
+					$bits['file']
+				);
+				if ( $id && ! is_wp_error( $id ) ) {
+					wp_update_attachment_metadata( $id, wp_generate_attachment_metadata( $id, $bits['file'] ) );
+					update_post_meta( $id, self::SAMPLE_META, 1 );
+					update_post_meta( $id, self::SAMPLE_MEDIA_META, $key );
+					if ( isset( $media['alt'] ) ) {
+						update_post_meta( $id, '_wp_attachment_image_alt', sanitize_text_field( $media['alt'] ) );
+					}
+					$ids[ $key ] = $id;
+				}
+			}
+			return $ids;
+		}
+
+		protected static function find_sample_attachment( $key ) {
+			$ids = get_posts(
+				array(
+					'post_type'      => 'attachment',
+					'post_status'    => 'inherit',
+					'posts_per_page' => 1,
+					'fields'         => 'ids',
+					'meta_key'       => self::SAMPLE_MEDIA_META,
+					'meta_value'     => $key,
+				)
+			);
+			return $ids ? (int) $ids[0] : 0;
+		}
+
+		protected static function import_sample_terms( $taxonomies ) {
+			$ids = array( 'category' => array(), 'post_tag' => array() );
+			$map = array( 'categories' => 'category', 'tags' => 'post_tag' );
+			foreach ( $map as $key => $taxonomy ) {
+				foreach ( isset( $taxonomies[ $key ] ) ? (array) $taxonomies[ $key ] : array() as $term ) {
+					$slug = isset( $term['slug'] ) ? sanitize_title( $term['slug'] ) : '';
+					$name = isset( $term['name'] ) ? sanitize_text_field( $term['name'] ) : $slug;
+					if ( ! $slug || ! $name ) {
+						continue;
+					}
+					$existing = get_term_by( 'slug', $slug, $taxonomy );
+					if ( $existing ) {
+						$term_id = (int) $existing->term_id;
+						wp_update_term( $term_id, $taxonomy, array( 'name' => $name, 'description' => isset( $term['description'] ) ? wp_kses_post( $term['description'] ) : '' ) );
+					} else {
+						$result  = wp_insert_term( $name, $taxonomy, array( 'slug' => $slug, 'description' => isset( $term['description'] ) ? wp_kses_post( $term['description'] ) : '' ) );
+						$term_id = is_wp_error( $result ) ? 0 : (int) $result['term_id'];
+					}
+					if ( $term_id ) {
+						update_term_meta( $term_id, self::SAMPLE_META, 1 );
+						$ids[ $taxonomy ][ $slug ] = $term_id;
+					}
+				}
+			}
+			return $ids;
+		}
+
+		protected static function upsert_sample_post( $item, $type, $media_ids, $term_ids ) {
+			$slug = isset( $item['slug'] ) ? sanitize_title( $item['slug'] ) : '';
+			if ( ! $slug ) {
+				return array( 'id' => 0, 'slug' => '', 'created' => 0, 'updated' => 0 );
+			}
+			$existing = get_page_by_path( $slug, OBJECT, $type );
+			$args     = array(
+				'post_title'   => isset( $item['title'] ) ? sanitize_text_field( $item['title'] ) : $slug,
+				'post_name'    => $slug,
+				'post_status'  => 'publish',
+				'post_type'    => $type,
+				'post_excerpt' => isset( $item['excerpt'] ) ? wp_kses_post( $item['excerpt'] ) : '',
+				'post_content' => isset( $item['content'] ) ? (string) $item['content'] : '',
+				'post_author'  => self::sample_author_id(),
+				'menu_order'   => isset( $item['menu_order'] ) ? (int) $item['menu_order'] : 0,
+			);
+			if ( ! empty( $item['date'] ) ) {
+				$args['post_date']     = sanitize_text_field( $item['date'] );
+				$args['post_date_gmt'] = get_gmt_from_date( $args['post_date'] );
+			}
+			if ( $existing ) {
+				$args['ID'] = $existing->ID;
+				$id         = wp_update_post( $args );
+				$created    = 0;
+				$updated    = 1;
+			} else {
+				$id      = wp_insert_post( $args );
+				$created = 1;
+				$updated = 0;
+			}
+			if ( ! $id || is_wp_error( $id ) ) {
+				return array( 'id' => 0, 'slug' => $slug, 'created' => 0, 'updated' => 0 );
+			}
+			update_post_meta( $id, self::SAMPLE_META, 1 );
+			update_post_meta( $id, self::DEMO_META, 1 );
+			if ( ! empty( $item['featured_media'] ) && isset( $media_ids[ $item['featured_media'] ] ) ) {
+				set_post_thumbnail( $id, (int) $media_ids[ $item['featured_media'] ] );
+			}
+			if ( 'page' === $type && isset( $item['template'] ) && $item['template'] ) {
+				update_post_meta( $id, '_wp_page_template', sanitize_text_field( $item['template'] ) );
+			}
+			if ( 'post' === $type ) {
+				$cats = array();
+				foreach ( isset( $item['categories'] ) ? (array) $item['categories'] : array() as $slug ) {
+					$slug = sanitize_title( $slug );
+					if ( isset( $term_ids['category'][ $slug ] ) ) {
+						$cats[] = (int) $term_ids['category'][ $slug ];
+					}
+				}
+				if ( $cats ) {
+					wp_set_post_categories( $id, $cats );
+				}
+				$tags = array();
+				foreach ( isset( $item['tags'] ) ? (array) $item['tags'] : array() as $slug ) {
+					$slug = sanitize_title( $slug );
+					if ( isset( $term_ids['post_tag'][ $slug ] ) ) {
+						$tags[] = (int) $term_ids['post_tag'][ $slug ];
+					}
+				}
+				wp_set_post_terms( $id, $tags, 'post_tag' );
+			}
+			return array( 'id' => (int) $id, 'slug' => $slug, 'created' => $created, 'updated' => $updated );
+		}
+
+		protected static function sample_author_id() {
+			$id = get_current_user_id();
+			if ( $id ) {
+				return $id;
+			}
+			$users = get_users( array( 'role__in' => array( 'administrator', 'editor' ), 'number' => 1, 'fields' => 'ID' ) );
+			return $users ? (int) $users[0] : 1;
+		}
+
+		protected static function import_sample_comments( $comments, $post_ids ) {
+			foreach ( (array) $comments as $comment ) {
+				$slug = isset( $comment['post_slug'] ) ? sanitize_title( $comment['post_slug'] ) : '';
+				$post_id = isset( $post_ids[ $slug ] ) ? (int) $post_ids[ $slug ] : self::sample_post_id_by_slug( $slug, 'post' );
+				if ( ! $slug || ! $post_id ) {
+					continue;
+				}
+				$content = isset( $comment['content'] ) ? wp_kses_post( $comment['content'] ) : '';
+				$author  = isset( $comment['author'] ) ? sanitize_text_field( $comment['author'] ) : '';
+				if ( ! $content || ! $author ) {
+					continue;
+				}
+				$existing = get_comments( array( 'post_id' => $post_id, 'author_email' => isset( $comment['author_email'] ) ? sanitize_email( $comment['author_email'] ) : '', 'meta_key' => self::SAMPLE_META, 'meta_value' => 1, 'number' => 1 ) );
+				if ( $existing ) {
+					continue;
+				}
+				$id = wp_insert_comment(
+					array(
+						'comment_post_ID'      => $post_id,
+						'comment_author'       => $author,
+						'comment_author_email' => isset( $comment['author_email'] ) ? sanitize_email( $comment['author_email'] ) : '',
+						'comment_author_url'   => isset( $comment['author_url'] ) ? esc_url_raw( $comment['author_url'] ) : '',
+						'comment_content'      => $content,
+						'comment_date'         => isset( $comment['date'] ) ? sanitize_text_field( $comment['date'] ) : current_time( 'mysql' ),
+						'comment_approved'     => 1,
+					)
+				);
+				if ( $id ) {
+					add_comment_meta( $id, self::SAMPLE_META, 1, true );
+				}
+			}
+		}
+
+		protected static function sample_post_id_by_slug( $slug, $type ) {
+			$post = $slug ? get_page_by_path( sanitize_title( $slug ), OBJECT, $type ) : null;
+			return $post ? (int) $post->ID : 0;
+		}
+
+		protected static function import_sample_menus( $menus, $post_ids, $page_ids, $term_ids ) {
+			$menu_ids = array();
+			foreach ( isset( $menus['menus'] ) ? (array) $menus['menus'] : array() as $menu ) {
+				$slug = isset( $menu['slug'] ) ? sanitize_title( $menu['slug'] ) : '';
+				$name = isset( $menu['name'] ) ? sanitize_text_field( $menu['name'] ) : $slug;
+				if ( ! $slug || ! $name ) {
+					continue;
+				}
+				$term = wp_get_nav_menu_object( $slug );
+				if ( ! $term ) {
+					$menu_id = wp_create_nav_menu( $name );
+					if ( is_wp_error( $menu_id ) ) {
+						continue;
+					}
+				} else {
+					$menu_id = (int) $term->term_id;
+					foreach ( wp_get_nav_menu_items( $menu_id ) ?: array() as $item ) {
+						wp_delete_post( $item->ID, true );
+					}
+				}
+				update_term_meta( $menu_id, self::SAMPLE_META, 1 );
+				$menu_ids[ $slug ] = $menu_id;
+				foreach ( isset( $menu['items'] ) ? (array) $menu['items'] : array() as $item ) {
+					$args = array( 'menu-item-title' => isset( $item['title'] ) ? sanitize_text_field( $item['title'] ) : '', 'menu-item-status' => 'publish' );
+					if ( 'post_type' === $item['type'] && 'page' === $item['object'] && ! empty( $page_ids[ $item['object_slug'] ] ) ) {
+						$args['menu-item-type']      = 'post_type';
+						$args['menu-item-object']    = 'page';
+						$args['menu-item-object-id'] = (int) $page_ids[ $item['object_slug'] ];
+					} elseif ( 'taxonomy' === $item['type'] && isset( $term_ids[ $item['object'] ][ $item['object_slug'] ] ) ) {
+						$args['menu-item-type']      = 'taxonomy';
+						$args['menu-item-object']    = sanitize_key( $item['object'] );
+						$args['menu-item-object-id'] = (int) $term_ids[ $item['object'] ][ $item['object_slug'] ];
+					} else {
+						$args['menu-item-type'] = 'custom';
+						$args['menu-item-url']  = self::sample_menu_url( isset( $item['url'] ) ? $item['url'] : '' );
+					}
+					$item_id = wp_update_nav_menu_item( $menu_id, 0, $args );
+					if ( $item_id && ! is_wp_error( $item_id ) ) {
+						update_post_meta( $item_id, self::SAMPLE_META, 1 );
+					}
+				}
+			}
+			$locations = get_theme_mod( 'nav_menu_locations', array() );
+			foreach ( isset( $menus['locations'] ) ? (array) $menus['locations'] : array() as $location => $slug ) {
+				$location = sanitize_key( $location );
+				$slug     = sanitize_title( $slug );
+				if ( isset( $menu_ids[ $slug ] ) ) {
+					$locations[ $location ] = $menu_ids[ $slug ];
+				}
+			}
+			set_theme_mod( 'nav_menu_locations', $locations );
+		}
+
+		protected static function sample_menu_url( $url ) {
+			$path = wp_parse_url( $url, PHP_URL_PATH );
+			return '/' === $path || '' === $path ? home_url( '/' ) : home_url( trailingslashit( ltrim( (string) $path, '/' ) ) );
+		}
+
+		protected static function apply_sample_options( $data, $post_ids, $page_ids, $media_ids, $term_ids ) {
+			$options = isset( $data['options'] ) && is_array( $data['options'] ) ? $data['options'] : array();
+			$refs    = isset( $data['refs'] ) && is_array( $data['refs'] ) ? $data['refs'] : array();
+			foreach ( $options as $key => $value ) {
+				if ( ! in_array( $key, self::option_keys(), true ) ) {
+					continue;
+				}
+				if ( 'epiktetos_reader_options' === $key && is_array( $value ) && ! empty( $refs['reader_editor_picks'] ) ) {
+					$value['editor_picks'] = array();
+					foreach ( (array) $refs['reader_editor_picks'] as $slug ) {
+						$post_id = isset( $post_ids[ $slug ] ) ? (int) $post_ids[ $slug ] : self::sample_post_id_by_slug( $slug, 'post' );
+						if ( $post_id ) {
+							$value['editor_picks'][] = $post_id;
+						}
+					}
+				}
+				if ( 'epiktetos_seo_options' === $key && is_array( $value ) && ! empty( $refs['seo_default_og_image'] ) && isset( $media_ids[ $refs['seo_default_og_image'] ] ) ) {
+					$value['default_og_image'] = wp_get_attachment_url( (int) $media_ids[ $refs['seo_default_og_image'] ] );
+				}
+				if ( 'epiktetos_about_options' === $key && is_array( $value ) && ! empty( $refs['about_page_slug'] ) && isset( $page_ids[ $refs['about_page_slug'] ] ) ) {
+					$value['about_page_id'] = (int) $page_ids[ $refs['about_page_slug'] ];
+				}
+				if ( 'epiktetos_category_order' === $key && ! empty( $refs['category_order'] ) ) {
+					$value = array();
+					foreach ( (array) $refs['category_order'] as $slug ) {
+						if ( isset( $term_ids['category'][ $slug ] ) ) {
+							$value[] = (int) $term_ids['category'][ $slug ];
+						}
+					}
+				}
+				update_option( $key, self::sanitize_imported_option( $key, $value ) );
+			}
+			$reading = isset( $data['reading'] ) && is_array( $data['reading'] ) ? $data['reading'] : array();
+			if ( ! empty( $reading['show_on_front'] ) ) {
+				update_option( 'show_on_front', sanitize_key( $reading['show_on_front'] ) );
+			}
+			if ( ! empty( $reading['page_on_front_slug'] ) && isset( $page_ids[ $reading['page_on_front_slug'] ] ) ) {
+				update_option( 'page_on_front', (int) $page_ids[ $reading['page_on_front_slug'] ] );
+			}
+			if ( ! empty( $reading['page_for_posts_slug'] ) && isset( $page_ids[ $reading['page_for_posts_slug'] ] ) ) {
+				update_option( 'page_for_posts', (int) $page_ids[ $reading['page_for_posts_slug'] ] );
+			}
+			if ( isset( $reading['permalink_structure'] ) ) {
+				update_option( 'permalink_structure', sanitize_text_field( $reading['permalink_structure'] ) );
+			}
+		}
+
 		public static function demo_reset( $dry = false ) {
-			$ids = get_posts( array(
-				'post_type'   => 'post',
-				'post_status' => 'any',
-				'numberposts' => -1,
-				'fields'      => 'ids',
-				'meta_key'    => self::DEMO_META,
-				'meta_value'  => 1,
-			) );
+			$post_ids = get_posts(
+				array(
+					'post_type'      => array( 'post', 'page', 'attachment', 'nav_menu_item' ),
+					'post_status'    => 'any',
+					'posts_per_page' => -1,
+					'fields'         => 'ids',
+					'meta_query'     => array(
+						'relation' => 'OR',
+						array( 'key' => self::SAMPLE_META, 'value' => 1 ),
+						array( 'key' => self::DEMO_META, 'value' => 1 ),
+					),
+				)
+			);
+			$comments = get_comments( array( 'meta_key' => self::SAMPLE_META, 'meta_value' => 1, 'fields' => 'ids' ) );
+			$terms    = self::sample_terms_for_removal();
+			$total    = count( $post_ids ) + count( $comments ) + count( $terms );
 			if ( ! $dry ) {
-				foreach ( $ids as $id ) {
+				foreach ( $comments as $id ) {
+					wp_delete_comment( $id, true );
+				}
+				foreach ( $post_ids as $id ) {
 					wp_delete_post( $id, true );
 				}
+				$terms = self::sample_terms_for_removal();
+				foreach ( $terms as $term ) {
+					wp_delete_term( $term['id'], $term['taxonomy'] );
+				}
+				$total = count( $post_ids ) + count( $comments ) + count( $terms );
 				self::flush_all_caches();
 			}
-			return array( 'deleted' => count( $ids ) );
+			return array( 'deleted' => $total );
+		}
+
+		protected static function sample_terms_for_removal() {
+			$out = array();
+			foreach ( array( 'category', 'post_tag', 'nav_menu' ) as $taxonomy ) {
+				$terms = get_terms( array( 'taxonomy' => $taxonomy, 'hide_empty' => false, 'meta_key' => self::SAMPLE_META, 'meta_value' => 1 ) );
+				if ( is_wp_error( $terms ) ) {
+					continue;
+				}
+				foreach ( $terms as $term ) {
+					if ( 'nav_menu' === $taxonomy || 0 === (int) $term->count ) {
+						$out[] = array( 'id' => (int) $term->term_id, 'taxonomy' => $taxonomy );
+					}
+				}
+			}
+			return $out;
 		}
 
 		protected static function demo_count() {
-			return (int) count( get_posts( array(
-				'post_type' => 'post', 'post_status' => 'any', 'numberposts' => -1, 'fields' => 'ids',
-				'meta_key' => self::DEMO_META, 'meta_value' => 1,
-			) ) );
+			return (int) count(
+				get_posts(
+					array(
+						'post_type'      => array( 'post', 'page', 'attachment' ),
+						'post_status'    => 'any',
+						'posts_per_page' => -1,
+						'fields'         => 'ids',
+						'meta_key'       => self::SAMPLE_META,
+						'meta_value'     => 1,
+					)
+				)
+			);
 		}
 
 		/* ============================================================
@@ -788,14 +1119,14 @@ if ( ! class_exists( 'Epiktetos_Admin' ) ) {
 		}
 
 		/* ============================================================
-		   Demo content
+		   Sample Content
 		   ============================================================ */
 
 		public static function render_demo() {
 			if ( ! current_user_can( self::CAP ) ) {
 				return;
 			}
-			self::open( __( 'Sample Content', 'epiktetos' ), __( 'Create a few local example posts to preview the layouts, then remove them whenever you like.', 'epiktetos' ) );
+				self::open( __( 'Sample Content', 'epiktetos' ), __( 'Create the bundled local example publication, then remove it whenever you like.', 'epiktetos' ) );
 			self::render_sample_content_panel();
 			self::close();
 		}
@@ -803,34 +1134,39 @@ if ( ! class_exists( 'Epiktetos_Admin' ) ) {
 		/**
 		 * Inner Sample Content panel, used by the Settings "Sample Content" tab.
 		 *
-		 * Creates only locally bundled example posts on explicit confirmation —
-		 * it never downloads anything, never contacts an external server, never
-		 * imports XML, and never overwrites the user's own content.
-		 */
-		public static function render_sample_content_panel() {
-			if ( ! current_user_can( self::CAP ) ) {
-				return;
+			 * Creates only locally bundled example posts, pages, menus, and media on explicit confirmation —
+			 * it never downloads anything, never contacts an external server, never
+			 * imports XML, and never overwrites the user's own content.
+			 */
+			public static function render_sample_content_panel() {
+				if ( ! current_user_can( self::CAP ) ) {
+					return;
+				}
+				$count     = self::demo_count();
+				$available = self::sample_manifest_counts();
+
+				echo '<div class="epi-card"><p class="epi-muted">' . esc_html__( 'Sample Content is bundled inside the theme. Creating it adds local example posts, pages, menus, taxonomies and images. It does not download anything, does not install plugins, and only updates the explicit sample slugs.', 'epiktetos' ) . '</p></div>';
+
+				echo '<div class="epi-card"><p>';
+				echo esc_html__( 'Bundled package:', 'epiktetos' ) . ' ';
+				printf(
+					/* translators: 1: posts, 2: pages, 3: media. */
+					esc_html__( '%1$d posts, %2$d pages, %3$d images.', 'epiktetos' ),
+					(int) ( isset( $available['posts'] ) ? $available['posts'] : 0 ),
+					(int) ( isset( $available['pages'] ) ? $available['pages'] : 0 ),
+					(int) ( isset( $available['media'] ) ? $available['media'] : 0 )
+				);
+				echo ' ';
+				/* translators: %d: number of sample items currently created. */
+				echo esc_html( sprintf( _n( '%d theme-created item is currently present.', '%d theme-created items are currently present.', $count, 'epiktetos' ), $count ) );
+				echo '</p>';
+				echo '<form method="post"><label class="epi-dry"><input type="checkbox" name="dry_run" value="1" /> ' . esc_html__( 'Preview only (show what would change, make no changes)', 'epiktetos' ) . '</label>';
+				echo '<div class="epi-actions" style="margin-top:1em">';
+				wp_nonce_field( self::NONCE );
+				echo '<button class="button button-primary" name="epiktetos_action" value="demo_import">' . esc_html__( 'Create Sample Content', 'epiktetos' ) . '</button>';
+				echo '<button class="button epi-danger" name="epiktetos_action" value="demo_reset" data-epi-confirm="' . esc_attr__( 'Remove only the sample content created by this theme? Your own content is never touched.', 'epiktetos' ) . '">' . esc_html__( 'Remove Sample Content', 'epiktetos' ) . '</button>';
+				echo '</div></form></div>';
 			}
-			$count = self::demo_count();
-			$full  = self::full_demo_present();
-
-			echo '<div class="epi-card"><p class="epi-muted">' . esc_html__( 'Sample content is a small set of example posts stored inside the theme. Creating it adds those example posts locally so you can see how the editorial layouts look. It never downloads anything, never contacts an external server, and never changes your own posts or pages.', 'epiktetos' ) . '</p></div>';
-
-			if ( $full ) {
-				echo '<div class="epi-card"><p><strong>' . esc_html__( 'Your site already has a full set of articles.', 'epiktetos' ) . '</strong> ' . esc_html__( 'All four categories already have five or more published posts, so creating sample content is paused to avoid adding duplicate examples. Use Remove only to delete example posts created here.', 'epiktetos' ) . '</p></div>';
-			}
-
-			echo '<div class="epi-card"><p>';
-			/* translators: %d: number of sample posts currently created. */
-			echo esc_html( sprintf( _n( '%d sample post is currently present.', '%d sample posts are currently present.', $count, 'epiktetos' ), $count ) );
-			echo '</p>';
-			echo '<form method="post"><label class="epi-dry"><input type="checkbox" name="dry_run" value="1" /> ' . esc_html__( 'Preview only (show what would change, make no changes)', 'epiktetos' ) . '</label>';
-			echo '<div class="epi-actions" style="margin-top:1em">';
-			wp_nonce_field( self::NONCE );
-			echo '<button class="button button-primary" name="epiktetos_action" value="demo_import">' . esc_html__( 'Create sample content', 'epiktetos' ) . '</button>';
-			echo '<button class="button epi-danger" name="epiktetos_action" value="demo_reset" data-epi-confirm="' . esc_attr__( 'Remove the example posts created by this theme? Your own posts are never touched.', 'epiktetos' ) . '">' . esc_html__( 'Remove sample content', 'epiktetos' ) . '</button>';
-			echo '</div></form></div>';
-		}
 
 		/* ============================================================
 		   Validator

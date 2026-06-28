@@ -3,7 +3,7 @@ Contributors: mcorucu
 Requires at least: 6.5
 Tested up to: 7.0
 Requires PHP: 8.0
-Stable tag: 1.0.0
+Stable tag: 1.0.2
 License: GNU General Public License v2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Tags: blog, one-column, editor-style, block-styles, full-site-editing, custom-colors, custom-menu
@@ -26,7 +26,7 @@ Features:
 * Reading aids: estimated reading time, reading progress, saved articles, and editor picks.
 * SEO output: JSON-LD structured data, Open Graph, and canonical URLs.
 * Accessibility: a skip link and a single main-content landmark in every template.
-* Admin tools: a setup wizard, theme settings, optional demo content, and a release validator.
+* Admin tools: a setup wizard, theme settings, optional Sample Content, and a release validator.
 
 == Installation ==
 
@@ -50,9 +50,9 @@ Use Appearance > Menus. The theme registers two locations, Primary Navigation an
 
 Use the theme toggle in the header. The choice is remembered per visitor in the browser.
 
-= How do I add the example content? =
+= How do I add the Sample Content? =
 
-Go to Appearance > Epiktetos > Demo Content. Importing is idempotent and will not duplicate posts. If a full demo is already present, the starter importer stays dormant.
+Go to Appearance > Epiktetos > Sample Content. Creating Sample Content is idempotent and adds bundled local posts, pages, menus, taxonomies, and images. It does not download anything or install plugins.
 
 = Is the theme translation ready? =
 
@@ -60,14 +60,22 @@ Yes. All strings use the "epiktetos" text domain and the theme loads translation
 
 == Changelog ==
 
+= 1.0.2 =
+* Added bundled Sample Content export based on the local Epiktetos demo site.
+* Improved Sample Content creation for posts, pages, menus, taxonomies and featured images.
+* Kept the setup wizard media picker fix from 1.0.1.
+
 = 1.0.0 =
 * Initial public release.
 * Full site editing block theme with editorial homepage, single, archive, search, author, and page templates.
 * Self-hosted Libre Baskerville and Inter fonts (no external requests).
 * Light/dark mode, reading aids, SEO metadata, and accessibility landmarks.
-* Setup wizard, theme settings, demo content tools, and a release validator.
+* Setup wizard, theme settings, Sample Content tools, and a release validator.
 
 == Upgrade Notice ==
+
+= 1.0.2 =
+Adds a complete local Sample Content package and keeps the setup wizard media picker fix.
 
 = 1.0.0 =
 Initial public release.

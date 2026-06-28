@@ -18,7 +18,7 @@ Epiktetos is a WordPress block theme for editorial sites, essays, journals, and 
 
 ## Theme Highlights
 
-Epiktetos includes publication-style home sections, category and topic discovery, polished archive rows, author pages, newsletter and reader calls to action, configurable theme settings, and sample content support for local setup and review.
+Epiktetos includes publication-style home sections, category and topic discovery, polished archive rows, author pages, newsletter and reader calls to action, configurable theme settings, and bundled Sample Content for local setup and review.
 
 The theme is intentionally restrained. It avoids heavy visual effects, page-builder dependencies, and non-native layout systems.
 
@@ -28,7 +28,7 @@ The theme is intentionally restrained. It avoids heavy visual effects, page-buil
 2. Copy `wordpress/wp-content/themes/epiktetos` into your WordPress installation's `wp-content/themes` directory.
 3. In the WordPress admin, go to **Appearance > Themes**.
 4. Activate **Epiktetos**.
-5. Configure menus, homepage settings, and theme options from the WordPress admin.
+5. Configure menus, homepage settings, and theme options from the WordPress admin, or create the bundled Sample Content from **Appearance > Epiktetos > Sample Content**.
 
 ## Requirements
 
@@ -72,7 +72,7 @@ Contributions are welcome when they improve compatibility, accessibility, docume
 
 - Continue hardening accessibility and keyboard navigation.
 - Expand documentation for theme setup and editorial workflows.
-- Improve sample content and onboarding guidance.
+- Improve Sample Content and onboarding guidance.
 - Track WordPress core changes that affect block themes and full site editing.
 
 ## Support

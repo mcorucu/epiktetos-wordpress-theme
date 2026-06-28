@@ -1,0 +1,103 @@
+{
+    "options": {
+        "epiktetos_options": {
+            "logo_width": 160,
+            "sticky_header": 1,
+            "transparent_header": 0,
+            "default_theme_mode": "light",
+            "show_rss": 1,
+            "rss_url": ""
+        },
+        "epiktetos_branding_options": [],
+        "epiktetos_footer_options": {
+            "description": "A quiet editorial journal on technology, philosophy, psychology, and history.",
+            "show_newsletter": 1,
+            "newsletter_title": "Subscribe",
+            "newsletter_text": "Receive new essays quietly.",
+            "show_rss": 1,
+            "youtube_url": "https://youtube.com/@mcorucu",
+            "x_url": "https://x.com/mcorucu",
+            "linkedin_url": "",
+            "github_url": "https://github.com/mcorucu",
+            "credit": "Built by mcorucu"
+        },
+        "epiktetos_single_options": null,
+        "epiktetos_discussion_options": null,
+        "epiktetos_taxonomy_options": null,
+        "epiktetos_reader_options": {
+            "enable_history": 1,
+            "enable_read_later": 1,
+            "enable_completion": 1,
+            "enable_quote_copy": 1,
+            "enable_image_zoom": 1,
+            "enable_streak": 1,
+            "enable_stats": 1,
+            "enable_editor_picks": 1,
+            "editor_picks": [
+                56,
+                71,
+                81,
+                91,
+                59,
+                77,
+                89,
+                99
+            ]
+        },
+        "epiktetos_seo_options": {
+            "publication_name": "Epiktetos",
+            "publication_description": "Essays on philosophy, psychology, history, technology, attention, and the examined life.",
+            "default_og_image": "http://localhost:8080/wp-content/uploads/2026/06/featured-quiet-web.webp",
+            "twitter_handle": "",
+            "enable_json_ld": 1,
+            "enable_open_graph": 1,
+            "enable_canonicals": 1
+        },
+        "epiktetos_about_options": {
+            "headline": "A quiet journal for technology, philosophy, psychology and history.",
+            "intro": "Epiktetos is built for slower thinking in a faster web — essays that prefer depth over noise.",
+            "mission_text": "The mission is simple: make room for durable questions, careful language, and ideas that can be returned to without losing their shape.",
+            "what_is_text": "Epiktetos is an independent editorial space for essays, notes, and reflections on systems, attention, culture, and the examined life.",
+            "why_exists_text": "The web rewards reaction. Epiktetos exists to practice a different rhythm: slower reading, clearer thinking, and essays that do not need to become noise.",
+            "principles": "Depth over velocity\r\nClarity over spectacle\r\nReading over scrolling\r\nSystems over trends\r\nHuman consequences over empty novelty",
+            "colophon_text": "Built by mcorucu. Powered by WordPress.",
+            "show_editorial_pillars": 1,
+            "show_start_reading": 1,
+            "show_author_section": 1,
+            "show_newsletter_section": 1,
+            "about_page_id": 0
+        },
+        "epiktetos_category_order": [
+            5,
+            6,
+            7,
+            3
+        ]
+    },
+    "refs": {
+        "reader_editor_picks": [
+            "quiet-web",
+            "stoicism-distracted-mind",
+            "attachment-styles",
+            "rethinking-end-of-rome",
+            "block-themes",
+            "epistemology-short-tour",
+            "thinking-about-thinking",
+            "history-memory-politics"
+        ],
+        "seo_default_og_image": "featured-quiet-web.webp",
+        "about_page_slug": "about",
+        "category_order": [
+            "philosophy",
+            "psychology",
+            "history",
+            "technology"
+        ]
+    },
+    "reading": {
+        "show_on_front": "posts",
+        "page_on_front_slug": "",
+        "page_for_posts_slug": "",
+        "permalink_structure": "/%postname%/"
+    }
+}

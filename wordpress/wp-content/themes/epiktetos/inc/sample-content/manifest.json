@@ -1,0 +1,22 @@
+{
+    "version": "1.0.2",
+    "generated": "2026-06-28T17:16:21+00:00",
+    "counts": {
+        "posts": 20,
+        "pages": 4,
+        "categories": 4,
+        "tags": 47,
+        "comments": 4,
+        "media": 20,
+        "menus": 2
+    },
+    "files": {
+        "posts": "posts.json",
+        "pages": "pages.json",
+        "taxonomies": "taxonomies.json",
+        "menus": "menus.json",
+        "theme_options": "theme-options.json",
+        "comments": "comments.json",
+        "media": "media.json"
+    }
+}

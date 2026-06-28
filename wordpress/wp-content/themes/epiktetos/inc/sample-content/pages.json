@@ -1,0 +1,42 @@
+[
+    {
+        "slug": "about",
+        "title": "About",
+        "date": "2026-06-24 20:36:08",
+        "menu_order": 0,
+        "excerpt": "",
+        "content": "Epiktetos is an independent editorial publication for slow, durable ideas.",
+        "template": "",
+        "featured_media": ""
+    },
+    {
+        "slug": "contact",
+        "title": "Contact",
+        "date": "2026-06-24 20:36:08",
+        "menu_order": 0,
+        "excerpt": "",
+        "content": "For thoughtful notes, corrections, and future collaboration.",
+        "template": "",
+        "featured_media": ""
+    },
+    {
+        "slug": "saved",
+        "title": "Saved",
+        "date": "2026-06-25 12:54:06",
+        "menu_order": 0,
+        "excerpt": "",
+        "content": "<!-- wp:shortcode -->[epiktetos_saved]<!-- /wp:shortcode -->",
+        "template": "",
+        "featured_media": ""
+    },
+    {
+        "slug": "topics",
+        "title": "Topics",
+        "date": "2026-06-24 21:41:47",
+        "menu_order": 0,
+        "excerpt": "",
+        "content": "A discovery index for categories and recurring topics.",
+        "template": "",
+        "featured_media": ""
+    }
+]

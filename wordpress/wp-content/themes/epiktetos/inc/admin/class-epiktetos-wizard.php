@@ -105,11 +105,20 @@ if ( ! class_exists( 'Epiktetos_Wizard' ) ) {
 					}
 					break;
 				case 'branding':
-					$logo_id = isset( $_POST['logo_id'] ) ? (int) $_POST['logo_id'] : 0;
-					self::merge_branding( array( 'header_logo_id' => $logo_id, 'header_logo_source' => $logo_id ? 'branding' : 'text' ) );
-					$fav_id = isset( $_POST['favicon_id'] ) ? (int) $_POST['favicon_id'] : 0;
+					$logo_id = self::attachment_id_from_request( 'logo_id' );
+					self::merge_branding(
+						array(
+							'header_logo_id'     => $logo_id,
+							'header_logo_source' => $logo_id ? 'header_logo' : 'text',
+						)
+					);
+					$fav_id = self::attachment_id_from_request( 'favicon_id' );
 					self::merge_branding( array( 'site_icon_id' => $fav_id ) );
-					if ( $fav_id ) { update_option( 'site_icon', $fav_id ); }
+					if ( $fav_id ) {
+						update_option( 'site_icon', $fav_id );
+					} else {
+						delete_option( 'site_icon' );
+					}
 					break;
 				case 'homepage':
 					$choice = isset( $_POST['front_choice'] ) ? sanitize_key( $_POST['front_choice'] ) : 'posts';
@@ -142,6 +151,18 @@ if ( ! class_exists( 'Epiktetos_Wizard' ) ) {
 			}
 			$opt = (array) get_option( Epiktetos_Branding::OPTION, array() );
 			update_option( Epiktetos_Branding::OPTION, array_merge( $opt, $changes ) );
+		}
+
+		protected static function attachment_id_from_request( $key ) {
+			$id = isset( $_POST[ $key ] ) ? absint( $_POST[ $key ] ) : 0;
+			if ( ! $id ) {
+				return 0;
+			}
+			$post = get_post( $id );
+			if ( ! $post || 'attachment' !== $post->post_type || ! wp_attachment_is_image( $id ) ) {
+				return 0;
+			}
+			return $id;
 		}
 
 		protected static function ensure_about_page() {
@@ -276,15 +297,10 @@ if ( ! class_exists( 'Epiktetos_Wizard' ) ) {
 		}
 
 		protected static function step_sample( $next, $prev ) {
-			$count = class_exists( 'Epiktetos_Admin' ) ? (int) get_posts( array( 'post_type' => 'post', 'numberposts' => 1, 'fields' => 'ids', 'meta_key' => '_epiktetos_demo', 'meta_value' => 1 ) ) : 0;
-			$full  = class_exists( 'Epiktetos_Admin' ) && Epiktetos_Admin::full_demo_present();
 			echo '<h1>' . esc_html__( 'Sample content', 'epiktetos' ) . '</h1>';
-			echo '<p class="epi-lead">' . esc_html__( 'Optional. Create a few local example posts to preview the layouts. Nothing is downloaded and your own content is never changed — remove the examples any time from Appearance → Epiktetos → Sample Content.', 'epiktetos' ) . '</p>';
+			echo '<p class="epi-lead">' . esc_html__( 'This creates local bundled example posts, pages, menus and images. It does not download anything and never installs plugins.', 'epiktetos' ) . '</p>';
 			self::form_open( 'sample', $next );
-			if ( $full ) {
-				echo '<p class="epi-lead">' . esc_html__( 'Your site already has a full set of articles, so this will add nothing. Leave it unchecked.', 'epiktetos' ) . '</p>';
-			}
-			echo '<p class="epi-field"><label><input type="checkbox" name="create_sample" value="1" ' . ( ( $count || $full ) ? '' : 'checked' ) . ' /> ' . esc_html__( 'Create sample content now', 'epiktetos' ) . '</label></p>';
+			echo '<p class="epi-field"><label><input type="checkbox" name="create_sample" value="1" checked /> ' . esc_html__( 'Create Sample Content', 'epiktetos' ) . '</label></p>';
 			self::nav( $prev );
 		}
 

@@ -1,0 +1,261 @@
+{
+    "categories": [
+        {
+            "slug": "history",
+            "name": "History",
+            "description": "The long view: people, ideas, institutions, and the patience of the past."
+        },
+        {
+            "slug": "philosophy",
+            "name": "Philosophy",
+            "description": "Ancient questions, examined for the modern reader."
+        },
+        {
+            "slug": "psychology",
+            "name": "Psychology",
+            "description": "The mind, attention, memory, and how we come to think."
+        },
+        {
+            "slug": "technology",
+            "name": "Technology",
+            "description": "Essays on software, systems, digital culture and long-term thinking."
+        }
+    ],
+    "tags": [
+        {
+            "slug": "ai",
+            "name": "AI",
+            "description": ""
+        },
+        {
+            "slug": "attachment",
+            "name": "Attachment",
+            "description": ""
+        },
+        {
+            "slug": "attention",
+            "name": "Attention",
+            "description": ""
+        },
+        {
+            "slug": "behaviour",
+            "name": "Behaviour",
+            "description": ""
+        },
+        {
+            "slug": "bias",
+            "name": "Bias",
+            "description": ""
+        },
+        {
+            "slug": "block-themes",
+            "name": "Block Themes",
+            "description": ""
+        },
+        {
+            "slug": "body",
+            "name": "Body",
+            "description": ""
+        },
+        {
+            "slug": "childhood",
+            "name": "Childhood",
+            "description": ""
+        },
+        {
+            "slug": "cognition",
+            "name": "Cognition",
+            "description": ""
+        },
+        {
+            "slug": "cold-war",
+            "name": "Cold War",
+            "description": ""
+        },
+        {
+            "slug": "commons",
+            "name": "Commons",
+            "description": ""
+        },
+        {
+            "slug": "design-systems",
+            "name": "Design Systems",
+            "description": ""
+        },
+        {
+            "slug": "deterrence",
+            "name": "Deterrence",
+            "description": ""
+        },
+        {
+            "slug": "empire",
+            "name": "Empire",
+            "description": ""
+        },
+        {
+            "slug": "epistemology",
+            "name": "Epistemology",
+            "description": ""
+        },
+        {
+            "slug": "ethics",
+            "name": "Ethics",
+            "description": ""
+        },
+        {
+            "slug": "existentialism",
+            "name": "Existentialism",
+            "description": ""
+        },
+        {
+            "slug": "freedom",
+            "name": "Freedom",
+            "description": ""
+        },
+        {
+            "slug": "habit",
+            "name": "Habit",
+            "description": ""
+        },
+        {
+            "slug": "history",
+            "name": "History",
+            "description": ""
+        },
+        {
+            "slug": "institutions",
+            "name": "Institutions",
+            "description": ""
+        },
+        {
+            "slug": "judgement",
+            "name": "Judgement",
+            "description": ""
+        },
+        {
+            "slug": "knowledge",
+            "name": "Knowledge",
+            "description": ""
+        },
+        {
+            "slug": "life",
+            "name": "Life",
+            "description": ""
+        },
+        {
+            "slug": "longevity",
+            "name": "Longevity",
+            "description": ""
+        },
+        {
+            "slug": "meaning",
+            "name": "Meaning",
+            "description": ""
+        },
+        {
+            "slug": "memory",
+            "name": "Memory",
+            "description": ""
+        },
+        {
+            "slug": "monuments",
+            "name": "Monuments",
+            "description": ""
+        },
+        {
+            "slug": "narcissism",
+            "name": "Narcissism",
+            "description": ""
+        },
+        {
+            "slug": "open-source",
+            "name": "Open Source",
+            "description": ""
+        },
+        {
+            "slug": "ottoman-empire",
+            "name": "Ottoman Empire",
+            "description": ""
+        },
+        {
+            "slug": "performance",
+            "name": "Performance",
+            "description": ""
+        },
+        {
+            "slug": "philosophy",
+            "name": "Philosophy",
+            "description": ""
+        },
+        {
+            "slug": "psychology",
+            "name": "Psychology",
+            "description": ""
+        },
+        {
+            "slug": "rome",
+            "name": "Rome",
+            "description": ""
+        },
+        {
+            "slug": "second-world-war",
+            "name": "Second World War",
+            "description": ""
+        },
+        {
+            "slug": "self",
+            "name": "Self",
+            "description": ""
+        },
+        {
+            "slug": "slow-web",
+            "name": "Slow Web",
+            "description": ""
+        },
+        {
+            "slug": "stewardship",
+            "name": "Stewardship",
+            "description": ""
+        },
+        {
+            "slug": "stoicism",
+            "name": "Stoicism",
+            "description": ""
+        },
+        {
+            "slug": "technology",
+            "name": "Technology",
+            "description": ""
+        },
+        {
+            "slug": "tools",
+            "name": "Tools",
+            "description": ""
+        },
+        {
+            "slug": "total-war",
+            "name": "Total War",
+            "description": ""
+        },
+        {
+            "slug": "trauma",
+            "name": "Trauma",
+            "description": ""
+        },
+        {
+            "slug": "web-design",
+            "name": "Web Design",
+            "description": ""
+        },
+        {
+            "slug": "wordpress",
+            "name": "WordPress",
+            "description": ""
+        },
+        {
+            "slug": "writing",
+            "name": "Writing",
+            "description": ""
+        }
+    ]
+}

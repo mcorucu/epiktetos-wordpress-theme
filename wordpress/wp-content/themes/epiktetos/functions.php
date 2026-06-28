@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EPIKTETOS_VERSION', '1.0.0' );
+define( 'EPIKTETOS_VERSION', '1.0.2' );
 define( 'EPIKTETOS_DIR', get_template_directory() );
 define( 'EPIKTETOS_URI', get_template_directory_uri() );
 
@@ -397,7 +397,7 @@ require_once EPIKTETOS_DIR . '/inc/seo/class-epiktetos-seo.php';
 require_once EPIKTETOS_DIR . '/inc/admin/class-epiktetos-settings.php';
 
 /**
- * Admin product suite — System, Tools, Demo Content, Validator.
+ * Admin product suite — System, Tools, Sample Content, Validator.
  */
 require_once EPIKTETOS_DIR . '/inc/admin/class-epiktetos-admin.php';
 

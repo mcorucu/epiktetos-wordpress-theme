@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to semantic versioning.
 
+## [1.0.2] - 2026-06-28
+
+### Added
+
+- Bundled Sample Content export based on the local Epiktetos demo site.
+- Local Sample Content media package for featured images.
+
+### Changed
+
+- Improved Sample Content creation for posts, pages, menus, taxonomies, comments, theme options, and featured images.
+- Kept the setup wizard media picker fix from 1.0.1.
+
 ## [1.0.0] - 2026-06-27
 
 ### Added
