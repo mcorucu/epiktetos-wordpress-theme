@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to semantic versioning.
 
+## [1.1.1] - 2026-07-02
+
+### Fixed
+
+- Admin Settings toolbar buttons (Save, Reset, Export, Import, and tab navigation) that could stop responding.
+- A fatal error in the Theme health check (undefined `demo_categories()` helper) that aborted the Settings page render and prevented the admin scripts from loading.
+
+### Changed
+
+- Improved admin UI reliability and interaction handling.
+- Minor bug fixes and stability improvements.
+
 ## [1.1.0] - 2026-07-02
 
 ### Added

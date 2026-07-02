@@ -3,7 +3,7 @@ Contributors: mcorucu
 Requires at least: 6.5
 Tested up to: 7.0
 Requires PHP: 8.0
-Stable tag: 1.1.0
+Stable tag: 1.1.1
 License: GNU General Public License v2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Tags: blog, one-column, editor-style, block-styles, full-site-editing, custom-colors, custom-menu
@@ -60,6 +60,12 @@ Yes. All strings use the "epiktetos" text domain and the theme loads translation
 
 == Changelog ==
 
+= 1.1.1 =
+* Fixed the admin Settings toolbar buttons (Save, Reset, Export, Import, tabs) that could stop responding.
+* Fixed a fatal error in the Theme health check that aborted the Settings page and prevented its scripts from loading.
+* Improved admin UI reliability and interaction handling.
+* Minor bug fixes and stability improvements.
+
 = 1.1.0 =
 * Added Article Voiceover support for single posts.
 * Added native media-library audio selection in the post editor.
@@ -79,6 +85,9 @@ Yes. All strings use the "epiktetos" text domain and the theme loads translation
 * Setup wizard, theme settings, Sample Content tools, and a release validator.
 
 == Upgrade Notice ==
+
+= 1.1.1 =
+Fixes the admin Settings toolbar buttons and a Theme health fatal error that could break the Settings page. Recommended for all users.
 
 = 1.1.0 =
 Adds optional per-post Article Voiceover: choose an audio file in the editor and readers get a calm audio player on single posts.

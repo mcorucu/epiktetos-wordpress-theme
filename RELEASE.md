@@ -1,6 +1,13 @@
-# Epiktetos 1.1.0 Release Notes
+# Epiktetos 1.1.1 Release Notes
 
-Epiktetos 1.1.0 adds optional Article Voiceover support to the Epiktetos WordPress block theme while preserving the quiet editorial reading experience.
+Epiktetos 1.1.1 is a maintenance release that restores full reliability to the admin Settings interface. It fixes a fatal error in the Theme health check that could abort the Settings page and leave the toolbar buttons (Save, Reset, Export, Import, and tab navigation) unresponsive. All 1.1.0 features are unchanged.
+
+## What's Fixed in 1.1.1
+
+- Fixed the admin Settings toolbar buttons that could stop responding.
+- Fixed a fatal error in the Theme health check (undefined `demo_categories()` helper) that aborted the Settings page render and blocked its scripts from loading.
+- Improved admin UI reliability and interaction handling.
+- Minor bug fixes and stability improvements.
 
 ## Highlights
 

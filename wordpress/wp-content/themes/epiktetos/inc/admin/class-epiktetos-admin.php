@@ -305,6 +305,27 @@ if ( ! class_exists( 'Epiktetos_Admin' ) ) {
 			return isset( $manifest['counts'] ) && is_array( $manifest['counts'] ) ? $manifest['counts'] : array();
 		}
 
+		/**
+		 * Canonical sample-content categories as a slug => name map.
+		 *
+		 * Sourced from the bundled taxonomies package so the theme-health
+		 * "editorial structure" checks stay in sync with the importer instead
+		 * of hard-coding the four main categories in two places.
+		 */
+		protected static function demo_categories() {
+			$taxonomies = self::sample_json( 'taxonomies.json', array( 'categories' => array() ) );
+			$categories = isset( $taxonomies['categories'] ) && is_array( $taxonomies['categories'] ) ? $taxonomies['categories'] : array();
+			$map        = array();
+			foreach ( $categories as $category ) {
+				$slug = isset( $category['slug'] ) ? sanitize_title( $category['slug'] ) : '';
+				if ( '' === $slug ) {
+					continue;
+				}
+				$map[ $slug ] = isset( $category['name'] ) ? sanitize_text_field( $category['name'] ) : $slug;
+			}
+			return $map;
+		}
+
 		public static function full_demo_present() {
 			$posts = self::sample_json( 'posts.json' );
 			if ( empty( $posts ) ) {
