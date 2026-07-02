@@ -239,8 +239,11 @@ if ( ! class_exists( 'Epiktetos_Single' ) ) {
 				$toc_html .= '</aside>';
 			}
 
+			/* ---- Article Voiceover (single posts, only when audio is set) ---- */
+			$voiceover = class_exists( 'Epiktetos_Voiceover' ) ? Epiktetos_Voiceover::render_player( $post ) : '';
+
 			/* ---- Body wrapper (the_content is left intact) ---- */
-			$body_html = '<div class="ts-article__body">' . $tools . $body . '</div>';
+			$body_html = '<div class="ts-article__body">' . $voiceover . $tools . $body . '</div>';
 
 			/* ---- End matter ---- */
 			$end  = '<div class="ts-article__end">';

@@ -3,7 +3,7 @@ Contributors: mcorucu
 Requires at least: 6.5
 Tested up to: 7.0
 Requires PHP: 8.0
-Stable tag: 1.0.2
+Stable tag: 1.1.0
 License: GNU General Public License v2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Tags: blog, one-column, editor-style, block-styles, full-site-editing, custom-colors, custom-menu
@@ -60,6 +60,12 @@ Yes. All strings use the "epiktetos" text domain and the theme loads translation
 
 == Changelog ==
 
+= 1.1.0 =
+* Added Article Voiceover support for single posts.
+* Added native media-library audio selection in the post editor.
+* Added a lightweight, accessible frontend audio player.
+* Added progressive fallback to native browser audio controls.
+
 = 1.0.2 =
 * Added bundled Sample Content export based on the local Epiktetos demo site.
 * Improved Sample Content creation for posts, pages, menus, taxonomies and featured images.
@@ -73,6 +79,9 @@ Yes. All strings use the "epiktetos" text domain and the theme loads translation
 * Setup wizard, theme settings, Sample Content tools, and a release validator.
 
 == Upgrade Notice ==
+
+= 1.1.0 =
+Adds optional per-post Article Voiceover: choose an audio file in the editor and readers get a calm audio player on single posts.
 
 = 1.0.2 =
 Adds a complete local Sample Content package and keeps the setup wizard media picker fix.

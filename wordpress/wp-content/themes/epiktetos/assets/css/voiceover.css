@@ -1,0 +1,148 @@
+/**
+ * Epiktetos — Article Voiceover player.
+ * Calm, minimal, editorial. Uses the theme design tokens; adapts to dark mode
+ * automatically because every colour is a --ts-* variable.
+ */
+
+.ts-voiceover {
+	margin: 0 0 var(--ts-space-3);
+	padding: var(--ts-space-2);
+	border: 1px solid var(--ts-border-subtle);
+	background: var(--ts-surface);
+	border-radius: var(--ts-radius);
+}
+
+.ts-voiceover__intro {
+	margin-bottom: var(--ts-space-1);
+	line-height: 1.4;
+}
+
+.ts-voiceover__label {
+	display: block;
+	font-size: 15px;
+	font-weight: 600;
+	letter-spacing: 0.01em;
+	color: var(--ts-text-primary);
+}
+
+.ts-voiceover__sub {
+	display: block;
+	margin-top: 2px;
+	font-size: 13px;
+	color: var(--ts-text-tertiary);
+}
+
+/* Baseline native player (JS-off). Hidden once the custom UI is built. */
+.ts-voiceover__audio {
+	display: block;
+	width: 100%;
+}
+.ts-voiceover.is-enhanced .ts-voiceover__audio {
+	display: none;
+}
+
+/* ---- Custom controls ---- */
+.ts-voiceover__controls {
+	display: flex;
+	align-items: center;
+	gap: var(--ts-space-1);
+	flex-wrap: wrap;
+}
+
+.ts-voiceover__btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 40px;
+	min-height: 40px;
+	padding: 0 6px;
+	border: 0;
+	background: transparent;
+	color: var(--ts-text-secondary);
+	font: inherit;
+	font-size: 13px;
+	cursor: pointer;
+	transition: color var(--ts-dur-fast) var(--ts-ease-standard);
+}
+.ts-voiceover__btn:hover {
+	color: var(--ts-text-primary);
+}
+.ts-voiceover__btn:focus-visible {
+	outline: none;
+	box-shadow: var(--ts-focus-ring);
+}
+
+/* Play/pause gets a quiet outline so it reads as the primary control. */
+.ts-voiceover__play {
+	border: 1px solid var(--ts-border-medium);
+	color: var(--ts-text-primary);
+}
+.ts-voiceover__play:hover {
+	border-color: var(--ts-border-strong);
+}
+
+.ts-voiceover__speed {
+	min-width: 44px;
+	font-variant-numeric: tabular-nums;
+}
+
+.ts-voiceover__time {
+	flex: 0 0 auto;
+	font-size: 13px;
+	color: var(--ts-text-tertiary);
+	font-variant-numeric: tabular-nums;
+	min-width: 40px;
+	text-align: center;
+}
+
+/* ---- Timeline (native range for free keyboard seeking) ---- */
+.ts-voiceover__timeline {
+	flex: 1 1 140px;
+	min-width: 0;
+	height: 4px;
+	margin: 0;
+	-webkit-appearance: none;
+	appearance: none;
+	background: linear-gradient( to right, var(--ts-primary) var(--ts-voiceover-fill, 0%), var(--ts-border-medium) var(--ts-voiceover-fill, 0%) );
+	cursor: pointer;
+}
+.ts-voiceover__timeline::-webkit-slider-thumb {
+	-webkit-appearance: none;
+	appearance: none;
+	width: 12px;
+	height: 12px;
+	border: 0;
+	border-radius: var(--ts-radius-avatar);
+	background: var(--ts-primary);
+}
+.ts-voiceover__timeline::-moz-range-thumb {
+	width: 12px;
+	height: 12px;
+	border: 0;
+	border-radius: var(--ts-radius-avatar);
+	background: var(--ts-primary);
+}
+.ts-voiceover__timeline::-moz-range-track {
+	height: 4px;
+	background: transparent;
+}
+.ts-voiceover__timeline:focus-visible {
+	outline: none;
+	box-shadow: var(--ts-focus-ring);
+}
+
+/* ---- Mobile: keep the timeline on its own full-width row ---- */
+@media (max-width: 480px) {
+	.ts-voiceover__timeline {
+		order: 6;
+		flex-basis: 100%;
+	}
+	.ts-voiceover__time--current { order: 4; }
+	.ts-voiceover__time--duration { order: 5; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.ts-voiceover__btn {
+		transition: none;
+	}
+}

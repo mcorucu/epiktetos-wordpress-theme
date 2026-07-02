@@ -1,6 +1,6 @@
-# Epiktetos 1.0.2 Release Notes
+# Epiktetos 1.1.0 Release Notes
 
-Epiktetos 1.0.2 packages the Epiktetos WordPress block theme with bundled local Sample Content for fresh installations and review environments.
+Epiktetos 1.1.0 adds optional Article Voiceover support to the Epiktetos WordPress block theme while preserving the quiet editorial reading experience.
 
 ## Highlights
 
@@ -8,6 +8,8 @@ Epiktetos 1.0.2 packages the Epiktetos WordPress block theme with bundled local 
 - Native WordPress templates, menus, taxonomies, and settings.
 - Polished homepage, archive, search, author, topic, and static page experiences.
 - Bundled local Sample Content with posts, pages, menus, taxonomies, comments, and featured images.
+- Optional per-post Article Voiceover using audio selected from the WordPress Media Library.
+- Lightweight frontend audio player with native browser fallback when JavaScript is unavailable.
 
 ## Accessibility
 
@@ -49,6 +51,15 @@ Epiktetos 1.0.2 packages the Epiktetos WordPress block theme with bundled local 
 - Related articles.
 - Newsletter call to action.
 - Editorial discussion experience.
+- Article Voiceover player on single posts when an audio attachment is selected.
+
+## Article Voiceover
+
+- Adds an Article Voiceover meta box to posts.
+- Lets editors select an audio attachment from the native Media Library.
+- Stores only the audio attachment ID in post meta.
+- Renders the player only on single posts with a valid audio file.
+- Uses progressive enhancement: native audio controls remain available if JavaScript does not run.
 
 ## Sample Content
 

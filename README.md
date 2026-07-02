@@ -10,6 +10,7 @@ Epiktetos is a WordPress block theme for editorial sites, essays, journals, and 
 - Accessible landmarks, navigation states, keyboard focus styles, and semantic templates.
 - Dark mode support using theme tokens and native preferences.
 - Reader-focused single post experience with reading progress, table of contents, related articles, and discussion styling.
+- Optional Article Voiceover for single posts, using audio selected from the WordPress Media Library.
 - Editorial archive, category, tag, author, search, about, contact, and static page templates.
 - Responsive layouts for desktop, tablet, and mobile reading.
 - Native WordPress menus, templates, settings, and taxonomy behavior.

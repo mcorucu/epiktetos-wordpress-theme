@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EPIKTETOS_VERSION', '1.0.2' );
+define( 'EPIKTETOS_VERSION', '1.1.0' );
 define( 'EPIKTETOS_DIR', get_template_directory() );
 define( 'EPIKTETOS_URI', get_template_directory_uri() );
 
@@ -360,6 +360,11 @@ require_once EPIKTETOS_DIR . '/inc/comments/class-epiktetos-comments.php';
  * Single post reading experience ([epiktetos_single]).
  */
 require_once EPIKTETOS_DIR . '/inc/single/class-epiktetos-single.php';
+
+/**
+ * Article Voiceover — optional per-post audio narration (single posts only).
+ */
+require_once EPIKTETOS_DIR . '/inc/voiceover/class-epiktetos-voiceover.php';
 
 /**
  * Reader intelligence, local history, saved articles, and editor picks.

@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to semantic versioning.
 
+## [1.1.0] - 2026-07-02
+
+### Added
+
+- Article Voiceover support for single posts.
+- Native WordPress Media Library audio selection in the post editor.
+- Lightweight, accessible frontend audio player with play/pause, timeline, mute, and speed controls.
+- Progressive fallback to native browser audio controls when JavaScript is unavailable.
+
 ## [1.0.2] - 2026-06-28
 
 ### Added
