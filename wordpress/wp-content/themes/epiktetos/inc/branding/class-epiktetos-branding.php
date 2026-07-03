@@ -15,10 +15,16 @@ if ( ! class_exists( 'Epiktetos_Branding' ) ) {
 
 		const OPTION = 'epiktetos_branding_options';
 
+		protected static $syncing_site_icon = false;
+
 		public static function init() {
 			add_action( 'admin_init', array( __CLASS__, 'register_settings' ) );
 			add_action( 'wp_head', array( __CLASS__, 'print_favicons' ), 4 );
 			add_filter( 'upload_mimes', array( __CLASS__, 'allow_svg_uploads' ) );
+			add_action( 'updated_option', array( __CLASS__, 'sync_site_icon_from_updated_option' ), 10, 3 );
+			add_action( 'added_option', array( __CLASS__, 'sync_site_icon_from_added_option' ), 10, 2 );
+			add_action( 'update_option_site_icon', array( __CLASS__, 'sync_site_icon_from_core' ), 10, 3 );
+			add_action( 'add_option_site_icon', array( __CLASS__, 'sync_site_icon_from_added_core' ), 10, 2 );
 		}
 
 		public static function defaults() {
@@ -217,9 +223,12 @@ if ( ! class_exists( 'Epiktetos_Branding' ) ) {
 			$out['logo_type']          = isset( $input['logo_type'] ) && in_array( $input['logo_type'], $logo_types, true ) ? $input['logo_type'] : $defs['logo_type'];
 			$out['logo_svg']           = isset( $input['logo_svg'] ) && in_array( $input['logo_svg'], $svgs, true ) ? $input['logo_svg'] : $defs['logo_svg'];
 			$out['logo_width']         = max( 48, min( 320, (int) ( isset( $input['logo_width'] ) ? $input['logo_width'] : $defs['logo_width'] ) ) );
-			foreach ( array( 'header_logo_id', 'footer_logo_id', 'logo_mark_id', 'site_icon_id', 'apple_touch_icon_id', 'default_og_image_id' ) as $media_key ) {
-				$out[ $media_key ] = isset( $input[ $media_key ] ) ? max( 0, (int) $input[ $media_key ] ) : 0;
-			}
+			$out['header_logo_id']      = isset( $input['header_logo_id'] ) ? self::sanitize_attachment_id( $input['header_logo_id'], array( 'image/svg+xml', 'image/png', 'image/jpeg', 'image/webp' ) ) : 0;
+			$out['footer_logo_id']      = isset( $input['footer_logo_id'] ) ? self::sanitize_attachment_id( $input['footer_logo_id'], array( 'image/svg+xml', 'image/png', 'image/jpeg', 'image/webp' ) ) : 0;
+			$out['logo_mark_id']        = isset( $input['logo_mark_id'] ) ? self::sanitize_attachment_id( $input['logo_mark_id'], array( 'image/svg+xml', 'image/png', 'image/jpeg', 'image/webp' ) ) : 0;
+			$out['site_icon_id']        = isset( $input['site_icon_id'] ) ? self::sanitize_attachment_id( $input['site_icon_id'], array( 'image/svg+xml', 'image/png', 'image/jpeg', 'image/webp' ) ) : 0;
+			$out['apple_touch_icon_id'] = isset( $input['apple_touch_icon_id'] ) ? self::sanitize_attachment_id( $input['apple_touch_icon_id'], array( 'image/png', 'image/jpeg', 'image/webp' ) ) : 0;
+			$out['default_og_image_id'] = isset( $input['default_og_image_id'] ) ? self::sanitize_attachment_id( $input['default_og_image_id'], array( 'image/png', 'image/jpeg', 'image/webp' ) ) : 0;
 			$out['header_logo_source'] = isset( $input['header_logo_source'] ) && in_array( $input['header_logo_source'], $sources, true ) ? $input['header_logo_source'] : $defs['header_logo_source'];
 			$out['footer_logo_source'] = isset( $input['footer_logo_source'] ) && in_array( $input['footer_logo_source'], $sources, true ) ? $input['footer_logo_source'] : $defs['footer_logo_source'];
 
@@ -263,17 +272,18 @@ if ( ! class_exists( 'Epiktetos_Branding' ) ) {
 
 			$icon_id   = (int) self::get( 'site_icon_id' );
 			$apple_id  = (int) self::get( 'apple_touch_icon_id' );
-			$icon      = self::attachment_url( $icon_id );
+			$icon      = self::attachment_icon_url( $icon_id );
 			$icon_type = $icon ? self::attachment_mime( $icon_id ) : 'image/png';
+			$has_custom_icon = (bool) $icon;
 			if ( ! $icon ) {
 				$icon = self::asset_url( 'brand/icon-256.png' );
 				$icon_type = 'image/png';
 			}
-			$apple = self::attachment_url( $apple_id );
+			$apple = self::attachment_icon_url( $apple_id );
 			if ( ! $apple ) {
 				$apple = self::asset_url( 'brand/icon-256.png' );
 			}
-			$svg = self::asset_url( 'svg/logo-mark.svg' );
+			$svg = $has_custom_icon ? '' : self::asset_url( 'svg/logo-mark.svg' );
 
 			echo "\n" . '<!-- Epiktetos branding icons -->' . "\n";
 			if ( $icon ) {
@@ -287,6 +297,28 @@ if ( ! class_exists( 'Epiktetos_Branding' ) ) {
 				echo '<link rel="icon" href="' . esc_url( $svg ) . '" type="image/svg+xml">' . "\n";
 			}
 			echo '<!-- /Epiktetos branding icons -->' . "\n";
+		}
+
+		public static function sync_site_icon_from_updated_option( $option, $old_value, $value ) {
+			if ( self::OPTION === $option ) {
+				self::sync_site_icon_from_branding_options( is_array( $value ) ? $value : array() );
+			}
+		}
+
+		public static function sync_site_icon_from_added_option( $option, $value ) {
+			if ( self::OPTION === $option ) {
+				self::sync_site_icon_from_branding_options( is_array( $value ) ? $value : array() );
+			}
+		}
+
+		public static function sync_site_icon_from_core( $old_value, $value, $option ) {
+			unset( $old_value, $option );
+			self::sync_branding_site_icon_from_core_id( (int) $value );
+		}
+
+		public static function sync_site_icon_from_added_core( $option, $value ) {
+			unset( $option );
+			self::sync_branding_site_icon_from_core_id( (int) $value );
 		}
 
 		public static function default_og_image_url() {
@@ -341,9 +373,84 @@ if ( ! class_exists( 'Epiktetos_Branding' ) ) {
 			return $url ? $url : '';
 		}
 
+		protected static function attachment_icon_url( $id ) {
+			$url = self::attachment_url( $id );
+			if ( ! $url ) {
+				return '';
+			}
+			$version = self::attachment_version( $id );
+			return $version ? add_query_arg( 'ver', rawurlencode( $version ), $url ) : $url;
+		}
+
 		protected static function attachment_mime( $id ) {
 			$type = get_post_mime_type( (int) $id );
 			return $type ? $type : 'image/png';
+		}
+
+		protected static function sanitize_attachment_id( $id, $allowed_mimes ) {
+			$id = max( 0, (int) $id );
+			if ( ! $id ) {
+				return 0;
+			}
+
+			$post = get_post( $id );
+			if ( ! $post || 'attachment' !== $post->post_type ) {
+				return 0;
+			}
+
+			$mime = get_post_mime_type( $id );
+			if ( $mime && in_array( $mime, $allowed_mimes, true ) ) {
+				return $id;
+			}
+
+			return 0;
+		}
+
+		protected static function sync_site_icon_from_branding_options( $options ) {
+			if ( self::$syncing_site_icon ) {
+				return;
+			}
+
+			$icon_id      = isset( $options['site_icon_id'] ) ? (int) $options['site_icon_id'] : 0;
+			$core_icon_id = self::core_site_icon_id( $icon_id );
+
+			self::$syncing_site_icon = true;
+			update_option( 'site_icon', $core_icon_id );
+			self::$syncing_site_icon = false;
+		}
+
+		protected static function sync_branding_site_icon_from_core_id( $icon_id ) {
+			if ( self::$syncing_site_icon ) {
+				return;
+			}
+
+			$icon_id = self::core_site_icon_id( $icon_id );
+			$options = get_option( self::OPTION, array() );
+			$options = is_array( $options ) ? array_merge( self::defaults(), $options ) : self::defaults();
+			if ( (int) $options['site_icon_id'] === $icon_id ) {
+				return;
+			}
+
+			$options['site_icon_id'] = $icon_id;
+
+			self::$syncing_site_icon = true;
+			update_option( self::OPTION, self::sanitize( $options ) );
+			self::$syncing_site_icon = false;
+		}
+
+		protected static function core_site_icon_id( $icon_id ) {
+			$icon_id = self::sanitize_attachment_id( $icon_id, array( 'image/png', 'image/jpeg', 'image/webp' ) );
+			return $icon_id ? $icon_id : 0;
+		}
+
+		protected static function attachment_version( $id ) {
+			$file = get_attached_file( (int) $id );
+			if ( $file && file_exists( $file ) ) {
+				return (string) filemtime( $file );
+			}
+
+			$post = get_post( (int) $id );
+			return $post ? (string) strtotime( $post->post_modified_gmt ? $post->post_modified_gmt : $post->post_modified ) : '';
 		}
 
 		protected static function attachment_meta_label( $id ) {

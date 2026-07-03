@@ -3,7 +3,7 @@ Contributors: mcorucu
 Requires at least: 6.5
 Tested up to: 7.0
 Requires PHP: 8.0
-Stable tag: 1.1.1
+Stable tag: 1.1.2
 License: GNU General Public License v2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Tags: blog, one-column, editor-style, block-styles, full-site-editing, custom-colors, custom-menu
@@ -60,6 +60,13 @@ Yes. All strings use the "epiktetos" text domain and the theme loads translation
 
 == Changelog ==
 
+= 1.1.2 =
+* Fixed favicon/site icon synchronization from Epiktetos Theme Settings to the WordPress native Site Icon option.
+* Fixed duplicate/conflicting fallback favicon output when a custom site icon is selected.
+* Fixed post thumbnail card image scaling and cropping for portrait images.
+* Improved archive, category, tag, and homepage listing thumbnail consistency.
+* Minor UX stability improvements.
+
 = 1.1.1 =
 * Fixed the admin Settings toolbar buttons (Save, Reset, Export, Import, tabs) that could stop responding.
 * Fixed a fatal error in the Theme health check that aborted the Settings page and prevented its scripts from loading.
@@ -85,6 +92,9 @@ Yes. All strings use the "epiktetos" text domain and the theme loads translation
 * Setup wizard, theme settings, Sample Content tools, and a release validator.
 
 == Upgrade Notice ==
+
+= 1.1.2 =
+Fixes Site Icon synchronization and improves listing thumbnail cropping for portrait images. Recommended for all users.
 
 = 1.1.1 =
 Fixes the admin Settings toolbar buttons and a Theme health fatal error that could break the Settings page. Recommended for all users.

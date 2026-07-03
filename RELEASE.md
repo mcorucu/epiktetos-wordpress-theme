@@ -1,13 +1,14 @@
-# Epiktetos 1.1.1 Release Notes
+# Epiktetos 1.1.2 Release Notes
 
-Epiktetos 1.1.1 is a maintenance release that restores full reliability to the admin Settings interface. It fixes a fatal error in the Theme health check that could abort the Settings page and leave the toolbar buttons (Save, Reset, Export, Import, and tab navigation) unresponsive. All 1.1.0 features are unchanged.
+Epiktetos 1.1.2 is a focused UX maintenance release for branding and archive presentation. It fixes Site Icon synchronization from Epiktetos Theme Settings to the WordPress native Site Icon option and improves listing thumbnail cropping so portrait images no longer create blank space in post cards.
 
-## What's Fixed in 1.1.1
+## What's Fixed in 1.1.2
 
-- Fixed the admin Settings toolbar buttons that could stop responding.
-- Fixed a fatal error in the Theme health check (undefined `demo_categories()` helper) that aborted the Settings page render and blocked its scripts from loading.
-- Improved admin UI reliability and interaction handling.
-- Minor bug fixes and stability improvements.
+- Fixed favicon/site icon synchronization from Epiktetos Theme Settings to the WordPress native Site Icon option.
+- Fixed duplicate/conflicting fallback favicon output when a custom site icon is selected.
+- Fixed post thumbnail card image scaling and cropping for portrait images.
+- Improved archive, category, tag, and homepage listing thumbnail consistency.
+- Minor UX stability improvements.
 
 ## Highlights
 

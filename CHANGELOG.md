@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to semantic versioning.
 
+## [1.1.2] - 2026-07-03
+
+### Fixed
+
+- Favicon/site icon synchronization from Epiktetos Theme Settings to the WordPress native Site Icon option.
+- Duplicate/conflicting fallback favicon output when a custom site icon is selected.
+- Post thumbnail card image scaling and cropping for portrait images.
+
+### Changed
+
+- Improved archive, category, tag, and homepage listing thumbnail consistency.
+- Minor UX stability improvements.
+
 ## [1.1.1] - 2026-07-02
 
 ### Fixed
