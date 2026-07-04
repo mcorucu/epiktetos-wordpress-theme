@@ -1,14 +1,18 @@
-# Epiktetos 1.1.2 Release Notes
+# Epiktetos 1.2.0 Release Notes
 
-Epiktetos 1.1.2 is a focused UX maintenance release for branding and archive presentation. It fixes Site Icon synchronization from Epiktetos Theme Settings to the WordPress native Site Icon option and improves listing thumbnail cropping so portrait images no longer create blank space in post cards.
+Epiktetos 1.2.0 is a content-editability release. The Homepage, Topics, About, and Contact copy now lives in real WordPress Page content and is edited as blocks in the Gutenberg editor, while the existing PHP layout wrappers preserve the design. Dynamic sections (latest articles, topics index, category showcase, contact email, social links) stay live via module shortcodes placed as blocks inside the page content.
 
-## What's Fixed in 1.1.2
+## What's New in 1.2.0
 
-- Fixed favicon/site icon synchronization from Epiktetos Theme Settings to the WordPress native Site Icon option.
-- Fixed duplicate/conflicting fallback favicon output when a custom site icon is selected.
-- Fixed post thumbnail card image scaling and cropping for portrait images.
-- Improved archive, category, tag, and homepage listing thumbnail consistency.
-- Minor UX stability improvements.
+- Fixed Latest Articles (and archive/category/tag/search) post-card thumbnails so portrait/landscape/square featured images crop consistently to the card frame with no blank area under the image.
+- Homepage/Topics/About/Contact copy is edited in the block editor as real Page content, not in Theme Settings.
+- Theme Settings expose the small visible labels of the shortcode-rendered modules (homepage Latest/Showcase/sidebar, Topics index, About modules) so reusable headings/buttons/captions stay editable without touching code; page-specific prose remains in the page editor.
+- The homepage is a static front Page ("Home") assembled from shortcode blocks plus an editable Editor's Note block.
+- Module shortcodes keep dynamic sections live inside editable content: `[epiktetos_topics_index]`, `[epiktetos_about_modules]`, `[epiktetos_contact_email]`, `[epiktetos_social_links]`, `[epiktetos_front_page]`.
+- Theme Settings now hold only global/config values (contact email, small homepage module labels, footer, header).
+- Optional footer copyright text override, with `%year%` and `%site%` placeholders.
+- Bundled Sample Content updated so fresh installs create editable Home/About/Topics/Contact Pages and set the static front page.
+- Design, layout, typography, colors, and behavior are preserved.
 
 ## Highlights
 

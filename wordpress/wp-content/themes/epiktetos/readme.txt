@@ -3,7 +3,7 @@ Contributors: mcorucu
 Requires at least: 6.5
 Tested up to: 7.0
 Requires PHP: 8.0
-Stable tag: 1.1.2
+Stable tag: 1.2.0
 License: GNU General Public License v2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Tags: blog, one-column, editor-style, block-styles, full-site-editing, custom-colors, custom-menu
@@ -60,6 +60,18 @@ Yes. All strings use the "epiktetos" text domain and the theme loads translation
 
 == Changelog ==
 
+= 1.2.0 =
+* Fixed Latest Articles thumbnail cropping so portrait, landscape, and square featured images fill a consistent frame with no blank area under the image; applied the same fix to archive/category/tag/search post cards.
+* Added Theme Settings controls for the visible labels used by the shortcode-rendered modules (Homepage Latest/Showcase/sidebar, Topics index, and About modules), under the Homepage and Editorial tabs.
+* Homepage, Topics, About, and Contact content is now real WordPress Page content, edited as blocks in the Gutenberg editor.
+* The Homepage is now a static front Page ("Home"); the hero, latest articles, category showcase, and sidebar are placed as shortcode blocks, and the Editor's Note is an editable block.
+* About/Topics/Contact pages render their page blocks inside the existing PHP layout wrappers, so the design is preserved while the copy is editable in the editor.
+* Added module shortcodes so dynamic sections stay live inside the page content: [epiktetos_topics_index], [epiktetos_about_modules], [epiktetos_contact_email], [epiktetos_social_links], [epiktetos_front_page].
+* Theme Settings now hold only global/config values (contact email, small homepage module labels, footer, header); page copy moved out of Settings into the page editor.
+* Added an optional footer copyright text override.
+* Updated bundled Sample Content so fresh installs create editable Home/About/Topics/Contact Pages and set the static front page.
+* Preserved the existing visual design, layout, and frontend behavior.
+
 = 1.1.2 =
 * Fixed favicon/site icon synchronization from Epiktetos Theme Settings to the WordPress native Site Icon option.
 * Fixed duplicate/conflicting fallback favicon output when a custom site icon is selected.
@@ -92,6 +104,9 @@ Yes. All strings use the "epiktetos" text domain and the theme loads translation
 * Setup wizard, theme settings, Sample Content tools, and a release validator.
 
 == Upgrade Notice ==
+
+= 1.2.0 =
+Makes the Homepage, Topics, About, and Contact copy editable from WordPress Pages and Epiktetos Theme Settings, with the existing design preserved.
 
 = 1.1.2 =
 Fixes Site Icon synchronization and improves listing thumbnail cropping for portrait images. Recommended for all users.

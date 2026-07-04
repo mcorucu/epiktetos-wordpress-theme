@@ -1561,6 +1561,9 @@ body.epiktetos-header-sticky.epiktetos-header-solid {
 
 .ts-row__media {
 	margin: 0;
+	/* Keep the media at its aspect-ratio frame height instead of stretching to
+	   the (taller) text column, which left blank space under the thumbnail. */
+	align-self: start;
 	overflow: hidden;
 	background-color: var(--ts-surface);
 	border: 1px solid var(--ts-border-subtle);
@@ -2214,6 +2217,9 @@ body.epiktetos-header-sticky.epiktetos-header-solid {
 .ts-archive-featured__media,
 .ts-archive-row__media {
 	margin: 0;
+	/* Match the Latest Articles fix: hug the aspect-ratio frame rather than
+	   stretching to the text column height (no blank space under the image). */
+	align-self: start;
 	overflow: hidden;
 	background-color: var(--ts-surface);
 	border: 1px solid var(--ts-border-subtle);

@@ -27,6 +27,9 @@ if ( ! class_exists( 'Epiktetos_Taxonomies' ) ) {
 		public static function register_shortcodes() {
 			add_shortcode( 'epiktetos_tag', array( __CLASS__, 'render_tag_archive' ) );
 			add_shortcode( 'epiktetos_topics', array( __CLASS__, 'render_topics_page' ) );
+			// Dynamic Topics discovery index — placed as a block inside the Topics
+			// page content so the intro copy stays editable in Gutenberg.
+			add_shortcode( 'epiktetos_topics_index', array( __CLASS__, 'render_topics_index' ) );
 		}
 
 		public static function defaults() {
@@ -60,7 +63,7 @@ if ( ! class_exists( 'Epiktetos_Taxonomies' ) ) {
 				'epiktetos_taxonomies',
 				__( 'Taxonomies', 'epiktetos' ),
 				function () {
-					echo '<p>' . esc_html__( 'Configure the tag archive and Topics index discovery surfaces.', 'epiktetos' ) . '</p>';
+					echo '<p>' . esc_html__( 'Configure the Topics discovery index and tag archive. The Topics page heading and intro are edited on the Topics page itself in the block editor, where the [epiktetos_topics_index] block renders this index.', 'epiktetos' ) . '</p>';
 				},
 				'epiktetos-settings'
 			);
@@ -97,6 +100,16 @@ if ( ! class_exists( 'Epiktetos_Taxonomies' ) ) {
 					checked( 1, (int) $value, false ),
 					esc_html__( 'Enabled', 'epiktetos' )
 				);
+				return;
+			}
+
+			if ( 'text' === $args['type'] ) {
+				printf( '<input type="text" id="%1$s" name="%2$s" value="%3$s" class="regular-text" />', esc_attr( $id ), esc_attr( $name ), esc_attr( $value ) );
+				return;
+			}
+
+			if ( 'textarea' === $args['type'] ) {
+				printf( '<textarea id="%1$s" name="%2$s" rows="3" class="large-text">%3$s</textarea>', esc_attr( $id ), esc_attr( $name ), esc_textarea( $value ) );
 				return;
 			}
 
@@ -222,34 +235,77 @@ if ( ! class_exists( 'Epiktetos_Taxonomies' ) ) {
 			return $html;
 		}
 
+		/**
+		 * Topics page shell. The heading + intro copy live in the Page's block
+		 * content; the discovery index is placed there via [epiktetos_topics_index].
+		 * Only the outer layout wrapper is supplied here so the styling is kept.
+		 *
+		 * @return string
+		 */
 		public static function render_topics_page() {
 			if ( ! is_page() ) {
 				return '';
 			}
 
+			$post = get_post();
+			if ( ! $post instanceof WP_Post ) {
+				return '';
+			}
+
+			// Prevent recursion if [epiktetos_topics] is ever placed in content.
+			$raw = preg_replace( '/\[epiktetos_topics\b(?![_])[^\]]*\]/i', '', (string) $post->post_content );
+			if ( '' === trim( (string) $raw ) ) {
+				$raw = self::topics_default_content();
+			}
+
+			setup_postdata( $post );
+			$content = apply_filters( 'the_content', $raw );
+			wp_reset_postdata();
+
 			$html  = '<article class="ts-page ts-topics" aria-labelledby="ts-topics-title">';
-			$html .= '<div class="ts-page__inner">';
-			$html .= '<header class="ts-page__header">';
-			$html .= '<p class="ts-page__eyebrow">' . esc_html__( 'Discovery', 'epiktetos' ) . '</p>';
-			$html .= '<h1 class="ts-page__title" id="ts-topics-title">' . esc_html__( 'Topics', 'epiktetos' ) . '</h1>';
-			$html .= '<p class="ts-page__dek">' . esc_html__( 'A map of the recurring ideas, categories, and quiet obsessions in the archive.', 'epiktetos' ) . '</p>';
-			$html .= '</header>';
-			$html .= self::render_category_index();
-			$html .= self::render_popular_tags();
-			$html .= self::render_category_topic_groups();
-			$html .= '</div>';
+			$html .= '<div class="ts-page__inner">' . $content . '</div>';
 			$html .= '</article>';
 
-			return self::compress( $html );
+			return self::compress_outer( $html );
+		}
+
+		/**
+		 * The dynamic Topics discovery index (all categories, popular tags, and
+		 * per-category topic groups). Rendered wherever [epiktetos_topics_index]
+		 * appears in the Topics page content.
+		 *
+		 * @return string
+		 */
+		public static function render_topics_index() {
+			$html  = self::render_category_index();
+			$html .= self::render_popular_tags();
+			$html .= self::render_category_topic_groups();
+			return self::compress_outer( $html );
+		}
+
+		/**
+		 * Default Topics page content as Gutenberg blocks (editable header copy +
+		 * the discovery index shortcode). Seeds the page and acts as a fallback.
+		 *
+		 * @return string
+		 */
+		public static function topics_default_content() {
+			$blocks = array(
+				'<!-- wp:paragraph {"className":"ts-page__eyebrow"} -->' . "\n" . '<p class="ts-page__eyebrow">Discovery</p>' . "\n" . '<!-- /wp:paragraph -->',
+				'<!-- wp:heading {"level":1,"anchor":"ts-topics-title","className":"ts-page__title"} -->' . "\n" . '<h1 class="wp-block-heading ts-page__title" id="ts-topics-title">Topics</h1>' . "\n" . '<!-- /wp:heading -->',
+				'<!-- wp:paragraph {"className":"ts-page__dek"} -->' . "\n" . '<p class="ts-page__dek">A map of the recurring ideas, categories, and quiet obsessions in the archive.</p>' . "\n" . '<!-- /wp:paragraph -->',
+				'<!-- wp:shortcode -->' . "\n" . '[epiktetos_topics_index]' . "\n" . '<!-- /wp:shortcode -->',
+			);
+			return implode( "\n\n", $blocks );
 		}
 
 		protected static function render_category_index() {
 			$cats = self::ordered_categories();
 
 			$html  = '<section class="ts-topics-section" aria-labelledby="ts-all-categories-title">';
-			$html .= '<div class="ts-topics-section__head"><h2 id="ts-all-categories-title">' . esc_html__( 'All Categories', 'epiktetos' ) . '</h2></div>';
+			$html .= '<div class="ts-topics-section__head"><h2 id="ts-all-categories-title">' . esc_html( epiktetos_label( 'topics_all_categories', __( 'All Categories', 'epiktetos' ) ) ) . '</h2></div>';
 			if ( empty( $cats ) ) {
-				$html .= '<p class="ts-topics-section__empty">' . esc_html__( 'No categories have been published yet.', 'epiktetos' ) . '</p>';
+				$html .= '<p class="ts-topics-section__empty">' . esc_html( epiktetos_label( 'topics_all_categories_empty', __( 'No categories have been published yet.', 'epiktetos' ) ) ) . '</p>';
 			} else {
 				$html .= '<div class="ts-topic-groups">';
 				foreach ( $cats as $cat ) {
@@ -277,9 +333,9 @@ if ( ! class_exists( 'Epiktetos_Taxonomies' ) ) {
 			$tags = is_array( $tags ) && ! is_wp_error( $tags ) ? $tags : array();
 
 			$html  = '<section class="ts-topics-section" aria-labelledby="ts-popular-topics-title">';
-			$html .= '<div class="ts-topics-section__head"><h2 id="ts-popular-topics-title">' . esc_html__( 'Popular Topics', 'epiktetos' ) . '</h2></div>';
+			$html .= '<div class="ts-topics-section__head"><h2 id="ts-popular-topics-title">' . esc_html( epiktetos_label( 'topics_popular', __( 'Popular Topics', 'epiktetos' ) ) ) . '</h2></div>';
 			if ( empty( $tags ) ) {
-				$html .= '<p class="ts-topics-section__empty">' . esc_html__( 'No topics have been added yet.', 'epiktetos' ) . '</p>';
+				$html .= '<p class="ts-topics-section__empty">' . esc_html( epiktetos_label( 'topics_popular_empty', __( 'No topics have been added yet.', 'epiktetos' ) ) ) . '</p>';
 			} else {
 				$html .= '<div class="ts-topic-pills__items ts-topic-pills__items--large">';
 				foreach ( $tags as $tag ) {
@@ -299,7 +355,7 @@ if ( ! class_exists( 'Epiktetos_Taxonomies' ) ) {
 			}
 
 			$html  = '<section class="ts-topics-section" aria-labelledby="ts-topic-groups-title">';
-			$html .= '<div class="ts-topics-section__head"><h2 id="ts-topic-groups-title">' . esc_html__( 'Topic Paths', 'epiktetos' ) . '</h2></div>';
+			$html .= '<div class="ts-topics-section__head"><h2 id="ts-topic-groups-title">' . esc_html( epiktetos_label( 'topics_paths', __( 'Topic Paths', 'epiktetos' ) ) ) . '</h2></div>';
 			$html .= '<div class="ts-topic-paths">';
 			foreach ( $cats as $cat ) {
 				$tags = self::tags_for_category( $cat->term_id, 8 );
@@ -444,6 +500,19 @@ if ( ! class_exists( 'Epiktetos_Taxonomies' ) ) {
 		protected static function compress( $html ) {
 			$html = preg_replace( '/>\s+</', '><', $html );
 			$html = str_replace( array( "\n", "\r", "\t" ), '', $html );
+			return trim( $html );
+		}
+
+		/**
+		 * Collapse only inter-tag whitespace (keeps text nodes intact). Used when
+		 * the output embeds editor content via the_content() so paragraphs and
+		 * inline markup are never mangled while staying wpautop-proof.
+		 *
+		 * @param string $html Raw HTML.
+		 * @return string
+		 */
+		protected static function compress_outer( $html ) {
+			$html = preg_replace( '/>\s+</', '><', $html );
 			return trim( $html );
 		}
 	}

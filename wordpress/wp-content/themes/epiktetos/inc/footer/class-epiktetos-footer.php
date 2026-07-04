@@ -46,6 +46,7 @@ if ( ! class_exists( 'Epiktetos_Footer' ) ) {
 				'linkedin_url'     => '',
 				'github_url'       => '',
 				'credit'           => __( 'Built by Mehmet Can Orucu', 'epiktetos' ),
+				'copyright'        => '',
 			);
 		}
 
@@ -91,6 +92,7 @@ if ( ! class_exists( 'Epiktetos_Footer' ) ) {
 				'linkedin_url'     => array( 'label' => __( 'LinkedIn URL', 'epiktetos' ), 'type' => 'url' ),
 				'github_url'       => array( 'label' => __( 'GitHub URL', 'epiktetos' ), 'type' => 'url' ),
 				'credit'           => array( 'label' => __( 'Credit text', 'epiktetos' ), 'type' => 'text' ),
+				'copyright'        => array( 'label' => __( 'Copyright text', 'epiktetos' ), 'type' => 'text', 'desc' => __( 'Leave empty to show “© {year} {Site Name}”. Use %year% and %site% as placeholders.', 'epiktetos' ) ),
 			);
 			foreach ( $fields as $key => $f ) {
 				add_settings_field(
@@ -162,6 +164,7 @@ if ( ! class_exists( 'Epiktetos_Footer' ) ) {
 				$out[ $url_key ] = $raw ? esc_url_raw( $raw ) : '';
 			}
 			$out['credit']           = isset( $input['credit'] ) ? sanitize_text_field( $input['credit'] ) : '';
+			$out['copyright']        = isset( $input['copyright'] ) ? sanitize_text_field( $input['copyright'] ) : '';
 			return $out;
 		}
 
@@ -243,10 +246,16 @@ if ( ! class_exists( 'Epiktetos_Footer' ) ) {
 			$sub .= '</div>';
 
 			/* --- Bottom bar --- */
-			$year   = esc_html( gmdate( 'Y' ) );
-			$credit = self::get( 'credit' );
+			$year      = gmdate( 'Y' );
+			$credit    = self::get( 'credit' );
+			$copyright = self::get( 'copyright' );
+			if ( '' !== trim( (string) $copyright ) ) {
+				$copy_text = strtr( $copyright, array( '%year%' => $year, '%site%' => $blogname ) );
+			} else {
+				$copy_text = sprintf( /* translators: 1: year 2: site name */ __( '© %1$s %2$s', 'epiktetos' ), $year, $blogname );
+			}
 			$bottom  = '<div class="ts-footer__bottom">';
-			$bottom .= '<p class="ts-footer__copy">' . esc_html( sprintf( /* translators: 1: year 2: site name */ __( '© %1$s %2$s', 'epiktetos' ), $year, $blogname ) ) . '</p>';
+			$bottom .= '<p class="ts-footer__copy">' . esc_html( $copy_text ) . '</p>';
 			if ( $credit ) {
 				$bottom .= '<p class="ts-footer__credit">' . esc_html( $credit ) . '</p>';
 			}

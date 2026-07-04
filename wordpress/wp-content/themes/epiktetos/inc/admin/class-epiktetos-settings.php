@@ -155,6 +155,12 @@ if ( ! class_exists( 'Epiktetos_Settings' ) ) {
 					'label' => __( 'General', 'epiktetos' ),
 					'kind'  => 'overview',
 				),
+				'homepage'    => array(
+					'label'    => __( 'Homepage', 'epiktetos' ),
+					'title'    => __( 'Homepage', 'epiktetos' ),
+					'desc'     => __( 'Editable homepage copy — hero button, Latest Articles heading, and the sidebar Editor’s Note.', 'epiktetos' ),
+					'sections' => array( 'epiktetos_home', 'epiktetos_home_modules' ),
+				),
 				'branding'    => array(
 					'label'    => __( 'Branding', 'epiktetos' ),
 					'title'    => __( 'Branding assets', 'epiktetos' ),
@@ -182,8 +188,8 @@ if ( ! class_exists( 'Epiktetos_Settings' ) ) {
 				'editorial'   => array(
 					'label'    => __( 'Editorial', 'epiktetos' ),
 					'title'    => __( 'Editorial', 'epiktetos' ),
-					'desc'     => __( 'Single-post reading aids, discussion, category order, topics, and the About page manifesto.', 'epiktetos' ),
-					'sections' => array( 'epiktetos_single', 'epiktetos_discussion', 'epiktetos_category_order', 'epiktetos_taxonomies', 'epiktetos_about' ),
+					'desc'     => __( 'Single-post reading aids, discussion, category order, the Topics index, and the contact email. Page copy is edited on each Page in the block editor.', 'epiktetos' ),
+					'sections' => array( 'epiktetos_single', 'epiktetos_discussion', 'epiktetos_category_order', 'epiktetos_taxonomies', 'epiktetos_contact', 'epiktetos_page_modules' ),
 				),
 				'seo'         => array(
 					'label'    => __( 'SEO', 'epiktetos' ),

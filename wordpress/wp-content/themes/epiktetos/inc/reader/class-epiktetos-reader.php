@@ -295,7 +295,7 @@ if ( ! class_exists( 'Epiktetos_Reader' ) ) {
 			if ( ! (int) self::get( 'enable_history' ) ) {
 				return '';
 			}
-			$title = 'single' === $context ? __( 'Continue Reading', 'epiktetos' ) : __( 'Continue Reading', 'epiktetos' );
+			$title = epiktetos_label( 'continue_reading_title', __( 'Continue Reading', 'epiktetos' ) );
 			return '<aside class="ts-reader-card ts-reader-history" data-ts-history-module data-context="' . esc_attr( $context ) . '" hidden><h2>' . esc_html( $title ) . '</h2><div class="ts-reader-history__list" data-ts-history-list></div></aside>';
 		}
 
@@ -349,7 +349,7 @@ if ( ! class_exists( 'Epiktetos_Reader' ) ) {
 				return '';
 			}
 			$html  = '<aside class="ts-reader-card ts-editor-picks ts-editor-picks--' . esc_attr( $context ) . '" aria-labelledby="ts-editor-picks-' . esc_attr( $context ) . '">';
-			$html .= '<h2 id="ts-editor-picks-' . esc_attr( $context ) . '">' . esc_html__( 'Editor Picks', 'epiktetos' ) . '</h2>';
+			$html .= '<h2 id="ts-editor-picks-' . esc_attr( $context ) . '">' . esc_html( epiktetos_label( 'editor_picks_title', __( 'Editor Picks', 'epiktetos' ) ) ) . '</h2>';
 			$html .= '<div class="ts-editor-picks__list">';
 			foreach ( $posts as $post ) {
 				$html .= '<article><h3><a href="' . esc_url( get_permalink( $post ) ) . '">' . esc_html( get_the_title( $post ) ) . '</a></h3><p>' . esc_html( get_the_date( '', $post ) ) . '</p></article>';
@@ -362,11 +362,20 @@ if ( ! class_exists( 'Epiktetos_Reader' ) ) {
 			if ( ! (int) self::get( 'enable_stats' ) ) {
 				return '';
 			}
-			$stats = self::publication_stats();
+			$data  = self::publication_stats();
+			// Labels are applied at render time (not cached) so Settings edits take
+			// effect immediately; only the computed values are cached.
+			$rows  = array(
+				epiktetos_label( 'stats_label_articles', __( 'Articles', 'epiktetos' ) )              => $data['articles'],
+				epiktetos_label( 'stats_label_categories', __( 'Categories', 'epiktetos' ) )          => $data['categories'],
+				epiktetos_label( 'stats_label_topics', __( 'Topics', 'epiktetos' ) )                  => $data['topics'],
+				epiktetos_label( 'stats_label_reading', __( 'Average reading time', 'epiktetos' ) )   => $data['reading'],
+				epiktetos_label( 'stats_label_updated', __( 'Last updated', 'epiktetos' ) )           => '' !== $data['updated'] ? $data['updated'] : epiktetos_label( 'stats_updated_soon', __( 'Soon', 'epiktetos' ) ),
+			);
 			$html  = '<aside class="ts-reader-card ts-publication-stats" aria-labelledby="ts-publication-stats-title">';
-			$html .= '<h2 id="ts-publication-stats-title">' . esc_html__( 'Publication Stats', 'epiktetos' ) . '</h2>';
+			$html .= '<h2 id="ts-publication-stats-title">' . esc_html( epiktetos_label( 'stats_title', __( 'Publication Stats', 'epiktetos' ) ) ) . '</h2>';
 			$html .= '<dl>';
-			foreach ( $stats as $label => $value ) {
+			foreach ( $rows as $label => $value ) {
 				$html .= '<div><dt>' . esc_html( $label ) . '</dt><dd>' . esc_html( $value ) . '</dd></div>';
 			}
 			$html .= '</dl></aside>';
@@ -375,7 +384,8 @@ if ( ! class_exists( 'Epiktetos_Reader' ) ) {
 
 		protected static function publication_stats() {
 			$cached = get_transient( self::STATS_TRANSIENT );
-			if ( is_array( $cached ) ) {
+			// Only reuse the cache if it is the current (label-free) data shape.
+			if ( is_array( $cached ) && isset( $cached['articles'] ) ) {
 				return $cached;
 			}
 			$post_count = (int) wp_count_posts( 'post' )->publish;
@@ -410,12 +420,14 @@ if ( ! class_exists( 'Epiktetos_Reader' ) ) {
 				$total += $post && class_exists( 'Epiktetos_Single' ) ? Epiktetos_Single::reading_time( $post->post_content ) : 1;
 			}
 			$avg = ! empty( $sample ) ? max( 1, (int) round( $total / count( $sample ) ) ) : 1;
+			// Data only, keyed by stable internal keys. Visible labels + the empty
+			// "Last updated" fallback are applied (and editable) at render time.
 			$stats = array(
-				__( 'Articles', 'epiktetos' )             => number_format_i18n( $post_count ),
-				__( 'Categories', 'epiktetos' )           => number_format_i18n( $cats ),
-				__( 'Topics', 'epiktetos' )               => number_format_i18n( $tags ),
-				__( 'Average reading time', 'epiktetos' ) => sprintf( /* translators: %d: minutes */ _n( '%d min', '%d min', $avg, 'epiktetos' ), $avg ),
-				__( 'Last updated', 'epiktetos' )         => ! empty( $latest ) ? get_the_modified_date( '', $latest[0] ) : __( 'Soon', 'epiktetos' ),
+				'articles'   => number_format_i18n( $post_count ),
+				'categories' => number_format_i18n( $cats ),
+				'topics'     => number_format_i18n( $tags ),
+				'reading'    => sprintf( /* translators: %d: minutes */ _n( '%d min', '%d min', $avg, 'epiktetos' ), $avg ),
+				'updated'    => ! empty( $latest ) ? get_the_modified_date( '', $latest[0] ) : '',
 			);
 			set_transient( self::STATS_TRANSIENT, $stats, 30 * MINUTE_IN_SECONDS );
 			return $stats;

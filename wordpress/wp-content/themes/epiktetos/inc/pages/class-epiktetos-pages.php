@@ -16,11 +16,14 @@ if ( ! class_exists( 'Epiktetos_Pages' ) ) {
 
 	class Epiktetos_Pages {
 
-		const ABOUT_OPTION = 'epiktetos_about_options';
+		const ABOUT_OPTION   = 'epiktetos_about_options';
+		const CONTACT_OPTION = 'epiktetos_contact_options';
 
 		public static function init() {
 			add_action( 'init', array( __CLASS__, 'register_shortcodes' ) );
-			add_action( 'admin_init', array( __CLASS__, 'register_about_settings' ) );
+			// About/Contact/Topics copy now lives in each Page's block content.
+			// Only the contact email remains a global setting.
+			add_action( 'admin_init', array( __CLASS__, 'register_contact_settings' ) );
 			add_filter( 'pre_handle_404', array( __CLASS__, 'allow_empty_author_archives' ), 10, 2 );
 		}
 
@@ -30,6 +33,52 @@ if ( ! class_exists( 'Epiktetos_Pages' ) ) {
 			add_shortcode( 'epiktetos_about', array( __CLASS__, 'render_about' ) );
 			add_shortcode( 'epiktetos_contact', array( __CLASS__, 'render_contact' ) );
 			add_shortcode( 'epiktetos_404', array( __CLASS__, 'render_404' ) );
+			// Dynamic page modules — placed as blocks inside the Page editor so the
+			// prose lives in post_content while these keep rendering live data.
+			add_shortcode( 'epiktetos_about_modules', array( __CLASS__, 'sc_about_modules' ) );
+			add_shortcode( 'epiktetos_contact_email', array( __CLASS__, 'sc_contact_email' ) );
+			add_shortcode( 'epiktetos_social_links', array( __CLASS__, 'sc_social_links' ) );
+		}
+
+		/**
+		 * Dynamic About modules (editorial pillars, editor picks, start reading,
+		 * author, newsletter). Rendered where the [epiktetos_about_modules]
+		 * shortcode is placed in the About page content.
+		 *
+		 * @return string
+		 */
+		public static function sc_about_modules() {
+			$author_id = self::publication_author_id();
+			$html  = self::render_about_pillars();
+			if ( class_exists( 'Epiktetos_Reader' ) ) {
+				$html .= Epiktetos_Reader::editor_picks_module( 'about', 3 );
+			}
+			$html .= self::render_start_here();
+			$html .= self::render_about_author( $author_id );
+			$html .= self::render_page_newsletter();
+			return self::compress_outer( $html );
+		}
+
+		/**
+		 * Contact email panel line, driven by the editable contact email setting.
+		 *
+		 * @return string
+		 */
+		public static function sc_contact_email() {
+			$email = self::contact_get( 'email' );
+			if ( '' === trim( (string) $email ) ) {
+				return '';
+			}
+			return '<p class="ts-contact__email-line"><a class="ts-contact__email" href="mailto:' . esc_attr( $email ) . '">' . esc_html( $email ) . '</a></p>';
+		}
+
+		/**
+		 * Social links row (configured in Appearance → Epiktetos → Footer).
+		 *
+		 * @return string
+		 */
+		public static function sc_social_links() {
+			return self::render_social_links();
 		}
 
 		public static function about_defaults() {
@@ -145,6 +194,88 @@ if ( ! class_exists( 'Epiktetos_Pages' ) ) {
 			}
 			$out['about_page_id'] = isset( $input['about_page_id'] ) ? max( 0, (int) $input['about_page_id'] ) : 0;
 			return $out;
+		}
+
+		/* ---------------- Contact page (editable copy) ---------------- */
+
+		/**
+		 * Contact defaults — must match the theme's original hard-coded copy so
+		 * the rendered Contact page is unchanged until an editor overrides it.
+		 *
+		 * @return array
+		 */
+		public static function contact_defaults() {
+			// Only the email is a global config value; all Contact page copy now
+			// lives in the page's block content (edited in Gutenberg).
+			return array(
+				'email' => 'hello@epiktetos.local',
+			);
+		}
+
+		public static function contact_get( $key ) {
+			$opts = get_option( self::CONTACT_OPTION, array() );
+			$defs = self::contact_defaults();
+			if ( is_array( $opts ) && array_key_exists( $key, $opts ) && '' !== $opts[ $key ] ) {
+				return $opts[ $key ];
+			}
+			return isset( $defs[ $key ] ) ? $defs[ $key ] : '';
+		}
+
+		public static function register_contact_settings() {
+			register_setting(
+				'epiktetos_settings',
+				self::CONTACT_OPTION,
+				array(
+					'sanitize_callback' => array( __CLASS__, 'sanitize_contact' ),
+					'default'           => self::contact_defaults(),
+				)
+			);
+
+			add_settings_section(
+				'epiktetos_contact',
+				__( 'Contact Page', 'epiktetos' ),
+				function () {
+					echo '<p>' . esc_html__( 'The Contact page copy is edited on the Contact page itself in the block editor. This is the contact email used by the Email panel’s mailto link.', 'epiktetos' ) . '</p>';
+				},
+				'epiktetos-settings'
+			);
+
+			$fields = array(
+				'email' => array( 'label' => __( 'Contact email', 'epiktetos' ), 'type' => 'text', 'desc' => __( 'Shown as a mailto link where the [epiktetos_contact_email] block is placed on the Contact page.', 'epiktetos' ) ),
+			);
+			foreach ( $fields as $key => $field ) {
+				add_settings_field(
+					self::CONTACT_OPTION . '_' . $key,
+					$field['label'],
+					array( __CLASS__, 'render_contact_field' ),
+					'epiktetos-settings',
+					'epiktetos_contact',
+					array_merge( array( 'key' => $key ), $field )
+				);
+			}
+		}
+
+		public static function render_contact_field( $args ) {
+			$key   = $args['key'];
+			$value = self::contact_get( $key );
+			$name  = self::CONTACT_OPTION . '[' . $key . ']';
+			$id    = 'epiktetos-contact-' . $key;
+
+			if ( 'textarea' === $args['type'] ) {
+				printf( '<textarea id="%1$s" name="%2$s" rows="3" class="large-text">%3$s</textarea>', esc_attr( $id ), esc_attr( $name ), esc_textarea( $value ) );
+			} else {
+				printf( '<input type="text" id="%1$s" name="%2$s" value="%3$s" class="regular-text" />', esc_attr( $id ), esc_attr( $name ), esc_attr( $value ) );
+			}
+			if ( ! empty( $args['desc'] ) ) {
+				echo '<p class="description">' . esc_html( $args['desc'] ) . '</p>';
+			}
+		}
+
+		public static function sanitize_contact( $input ) {
+			$raw_email = isset( $input['email'] ) ? trim( (string) $input['email'] ) : '';
+			return array(
+				'email' => '' === $raw_email ? '' : sanitize_email( $raw_email ),
+			);
 		}
 
 		/**
@@ -307,61 +438,45 @@ if ( ! class_exists( 'Epiktetos_Pages' ) ) {
 		 * @return string
 		 */
 		public static function render_about() {
+			return self::render_editorial_page( 'ts-about', 'ts-about-title', self::about_default_content() );
+		}
+
+		/**
+		 * Shared editorial-page shell. The visible copy comes from the Page's
+		 * Gutenberg content (`the_content()`); this only supplies the outer
+		 * layout wrapper so the existing page styling is preserved. Dynamic
+		 * sections are provided by module shortcodes placed inside the content.
+		 *
+		 * @param string $modifier  Body class modifier (ts-about|ts-contact|ts-topics).
+		 * @param string $title_id  Anchor id used by aria-labelledby (matches the H1 in content).
+		 * @param string $fallback  Default block content used if the page has none.
+		 * @return string
+		 */
+		protected static function render_editorial_page( $modifier, $title_id, $fallback = '' ) {
 			if ( ! is_page() ) {
 				return '';
 			}
 
-			$post      = get_post();
-			$author_id = self::publication_author_id();
-			$settings  = array(
-				'headline'              => self::about_get( 'headline' ),
-				'intro'                 => self::about_get( 'intro' ),
-				'mission_text'          => self::about_get( 'mission_text' ),
-				'what_is_text'          => self::about_get( 'what_is_text' ),
-				'why_exists_text'       => self::about_get( 'why_exists_text' ),
-				'principles'            => self::about_get( 'principles' ),
-				'show_editorial_pillars' => (int) self::about_get( 'show_editorial_pillars' ),
-				'show_start_reading'    => (int) self::about_get( 'show_start_reading' ),
-				'show_author_section'   => (int) self::about_get( 'show_author_section' ),
-				'show_newsletter_section' => (int) self::about_get( 'show_newsletter_section' ),
-				'colophon_text'         => self::about_get( 'colophon_text' ),
-			);
+			$post = get_post();
+			if ( ! $post instanceof WP_Post ) {
+				return '';
+			}
 
-			$html  = '<article class="ts-page ts-about" aria-labelledby="ts-about-title">';
-			$html .= '<div class="ts-page__inner">';
-			$html .= '<header class="ts-page__header ts-about__header">';
-			$html .= '<p class="ts-page__eyebrow">' . esc_html__( 'About the publication', 'epiktetos' ) . '</p>';
-			$html .= '<h1 class="ts-page__title" id="ts-about-title">' . esc_html( $settings['headline'] ) . '</h1>';
-			$html .= '<p class="ts-page__dek">' . esc_html( $settings['intro'] ) . '</p>';
-			$html .= '</header>';
+			$raw = (string) $post->post_content;
+			if ( '' === trim( $raw ) && '' !== $fallback ) {
+				$raw = $fallback;
+			}
 
-			$html .= self::render_about_nav( $settings );
-			$html .= self::render_about_manifesto( $settings );
-			$html .= self::render_about_editor_content( $post );
+			setup_postdata( $post );
+			$content = apply_filters( 'the_content', $raw );
+			wp_reset_postdata();
 
-			$html .= '<div class="ts-about__grid">';
-			$html .= self::about_section( __( 'What Epiktetos Is', 'epiktetos' ), $settings['what_is_text'], 'ts-about-what' );
-			$html .= self::about_section( __( 'Why It Exists', 'epiktetos' ), $settings['why_exists_text'], 'ts-about-why' );
-			$html .= '</div>';
+			if ( '' === trim( wp_strip_all_tags( $content ) ) && false === strpos( $content, '<' ) ) {
+				$content = '<p>' . esc_html__( 'This page is being prepared.', 'epiktetos' ) . '</p>';
+			}
 
-			if ( $settings['show_editorial_pillars'] ) {
-				$html .= self::render_about_pillars();
-			}
-			if ( class_exists( 'Epiktetos_Reader' ) ) {
-				$html .= Epiktetos_Reader::editor_picks_module( 'about', 3 );
-			}
-			$html .= self::render_about_principles( $settings['principles'] );
-			if ( $settings['show_start_reading'] ) {
-				$html .= self::render_start_here();
-			}
-			if ( $settings['show_author_section'] ) {
-				$html .= self::render_about_author( $author_id );
-			}
-			if ( $settings['show_newsletter_section'] ) {
-				$html .= self::render_page_newsletter();
-			}
-			$html .= self::render_about_colophon( $settings['colophon_text'] );
-			$html .= '</div>';
+			$html  = '<article class="ts-page ' . esc_attr( $modifier ) . '" aria-labelledby="' . esc_attr( $title_id ) . '">';
+			$html .= '<div class="ts-page__inner">' . $content . '</div>';
 			$html .= '</article>';
 
 			return self::compress_outer( $html );
@@ -373,29 +488,7 @@ if ( ! class_exists( 'Epiktetos_Pages' ) ) {
 		 * @return string
 		 */
 		public static function render_contact() {
-			if ( ! is_page() ) {
-				return '';
-			}
-
-			$email = 'hello@epiktetos.local';
-
-			$html  = '<article class="ts-page ts-contact" aria-labelledby="ts-contact-title">';
-			$html .= '<div class="ts-page__inner">';
-			$html .= '<header class="ts-page__header">';
-			$html .= '<p class="ts-page__eyebrow">' . esc_html__( 'Contact', 'epiktetos' ) . '</p>';
-			$html .= '<h1 class="ts-page__title" id="ts-contact-title">' . esc_html__( 'A quiet line in.', 'epiktetos' ) . '</h1>';
-			$html .= '<p class="ts-page__dek">' . esc_html__( 'For notes, thoughtful responses, corrections, and future collaboration ideas.', 'epiktetos' ) . '</p>';
-			$html .= '</header>';
-			$html .= '<section class="ts-contact__panel" aria-labelledby="ts-contact-email-title">';
-			$html .= '<h2 id="ts-contact-email-title">' . esc_html__( 'Email', 'epiktetos' ) . '</h2>';
-			$html .= '<p>' . esc_html__( 'The contact form will arrive later. For now, this placeholder keeps the page ready without adding unnecessary machinery.', 'epiktetos' ) . '</p>';
-			$html .= '<p class="ts-contact__email-line"><a class="ts-contact__email" href="mailto:' . esc_attr( $email ) . '">' . esc_html( $email ) . '</a></p>';
-			$html .= '</section>';
-			$html .= self::render_social_links();
-			$html .= '</div>';
-			$html .= '</article>';
-
-			return self::compress( $html );
+			return self::render_editorial_page( 'ts-contact', 'ts-contact-title', self::contact_default_content() );
 		}
 
 		/**
@@ -423,6 +516,47 @@ if ( ! class_exists( 'Epiktetos_Pages' ) ) {
 			$html .= '</article>';
 
 			return self::compress( $html );
+		}
+
+		/* ---------------- Default page content (Gutenberg blocks) ---------------- */
+
+		/**
+		 * Default About page content as Gutenberg blocks. Used to seed the About
+		 * page (migration + Sample Content) so the real copy is editable in the
+		 * block editor, and as a render fallback if the page is emptied. The
+		 * dynamic modules render via the [epiktetos_about_modules] shortcode.
+		 *
+		 * @return string
+		 */
+		public static function about_default_content() {
+			$blocks = array(
+				'<!-- wp:paragraph {"className":"ts-page__eyebrow"} -->' . "\n" . '<p class="ts-page__eyebrow">About the publication</p>' . "\n" . '<!-- /wp:paragraph -->',
+				'<!-- wp:heading {"level":1,"anchor":"ts-about-title","className":"ts-page__title"} -->' . "\n" . '<h1 class="wp-block-heading ts-page__title" id="ts-about-title">A quiet journal for technology, philosophy, psychology and history.</h1>' . "\n" . '<!-- /wp:heading -->',
+				'<!-- wp:paragraph {"className":"ts-page__dek"} -->' . "\n" . '<p class="ts-page__dek">Epiktetos is built for slower thinking in a faster web — essays that prefer depth over noise.</p>' . "\n" . '<!-- /wp:paragraph -->',
+				'<!-- wp:group {"tagName":"section","anchor":"ts-about-mission","className":"ts-about__manifesto","layout":{"type":"default"}} -->' . "\n" . '<section class="wp-block-group ts-about__manifesto" id="ts-about-mission"><!-- wp:paragraph {"className":"ts-about__label"} -->' . "\n" . '<p class="ts-about__label">Opening Manifesto</p>' . "\n" . '<!-- /wp:paragraph -->' . "\n\n" . '<!-- wp:heading {"anchor":"ts-about-mission-title"} -->' . "\n" . '<h2 class="wp-block-heading" id="ts-about-mission-title">A place for slower thought.</h2>' . "\n" . '<!-- /wp:heading -->' . "\n\n" . '<!-- wp:paragraph -->' . "\n" . '<p>The mission is simple: make room for durable questions, careful language, and ideas that can be returned to without losing their shape.</p>' . "\n" . '<!-- /wp:paragraph --></section>' . "\n" . '<!-- /wp:group -->',
+				'<!-- wp:group {"className":"ts-about__grid","layout":{"type":"default"}} -->' . "\n" . '<div class="wp-block-group ts-about__grid"><!-- wp:group {"tagName":"section","anchor":"ts-about-what","className":"ts-about__section","layout":{"type":"default"}} -->' . "\n" . '<section class="wp-block-group ts-about__section" id="ts-about-what"><!-- wp:heading -->' . "\n" . '<h2 class="wp-block-heading">What Epiktetos Is</h2>' . "\n" . '<!-- /wp:heading -->' . "\n\n" . '<!-- wp:paragraph -->' . "\n" . '<p>Epiktetos is an independent editorial space for essays, notes, and reflections on systems, attention, culture, and the examined life.</p>' . "\n" . '<!-- /wp:paragraph --></section>' . "\n" . '<!-- /wp:group -->' . "\n\n" . '<!-- wp:group {"tagName":"section","anchor":"ts-about-why","className":"ts-about__section","layout":{"type":"default"}} -->' . "\n" . '<section class="wp-block-group ts-about__section" id="ts-about-why"><!-- wp:heading -->' . "\n" . '<h2 class="wp-block-heading">Why It Exists</h2>' . "\n" . '<!-- /wp:heading -->' . "\n\n" . '<!-- wp:paragraph -->' . "\n" . '<p>The web rewards reaction. Epiktetos exists to practice a different rhythm: slower reading, clearer thinking, and essays that do not need to become noise.</p>' . "\n" . '<!-- /wp:paragraph --></section>' . "\n" . '<!-- /wp:group --></div>' . "\n" . '<!-- /wp:group -->',
+				'<!-- wp:group {"tagName":"section","className":"ts-about-principles","layout":{"type":"default"}} -->' . "\n" . '<section class="wp-block-group ts-about-principles"><!-- wp:heading {"anchor":"ts-about-principles-title"} -->' . "\n" . '<h2 class="wp-block-heading" id="ts-about-principles-title">Editorial principles</h2>' . "\n" . '<!-- /wp:heading -->' . "\n\n" . '<!-- wp:list -->' . "\n" . '<ul class="wp-block-list"><!-- wp:list-item --><li>Depth over velocity</li><!-- /wp:list-item --><!-- wp:list-item --><li>Clarity over spectacle</li><!-- /wp:list-item --><!-- wp:list-item --><li>Reading over scrolling</li><!-- /wp:list-item --><!-- wp:list-item --><li>Systems over trends</li><!-- /wp:list-item --><!-- wp:list-item --><li>Human consequences over empty novelty</li><!-- /wp:list-item --></ul>' . "\n" . '<!-- /wp:list --></section>' . "\n" . '<!-- /wp:group -->',
+				'<!-- wp:shortcode -->' . "\n" . '[epiktetos_about_modules]' . "\n" . '<!-- /wp:shortcode -->',
+				'<!-- wp:group {"tagName":"section","className":"ts-about-colophon","layout":{"type":"default"}} -->' . "\n" . '<section class="wp-block-group ts-about-colophon"><!-- wp:heading {"anchor":"ts-about-colophon-title"} -->' . "\n" . '<h2 class="wp-block-heading" id="ts-about-colophon-title">Colophon</h2>' . "\n" . '<!-- /wp:heading -->' . "\n\n" . '<!-- wp:paragraph -->' . "\n" . '<p>Built by Mehmet Can Orucu. Powered by WordPress.</p>' . "\n" . '<!-- /wp:paragraph --></section>' . "\n" . '<!-- /wp:group -->',
+			);
+			return implode( "\n\n", $blocks );
+		}
+
+		/**
+		 * Default Contact page content as Gutenberg blocks. The email line and
+		 * social row render via shortcodes so those stay dynamic/configurable.
+		 *
+		 * @return string
+		 */
+		public static function contact_default_content() {
+			$blocks = array(
+				'<!-- wp:paragraph {"className":"ts-page__eyebrow"} -->' . "\n" . '<p class="ts-page__eyebrow">Contact</p>' . "\n" . '<!-- /wp:paragraph -->',
+				'<!-- wp:heading {"level":1,"anchor":"ts-contact-title","className":"ts-page__title"} -->' . "\n" . '<h1 class="wp-block-heading ts-page__title" id="ts-contact-title">A quiet line in.</h1>' . "\n" . '<!-- /wp:heading -->',
+				'<!-- wp:paragraph {"className":"ts-page__dek"} -->' . "\n" . '<p class="ts-page__dek">For notes, thoughtful responses, corrections, and future collaboration ideas.</p>' . "\n" . '<!-- /wp:paragraph -->',
+				'<!-- wp:group {"tagName":"section","className":"ts-contact__panel","layout":{"type":"default"}} -->' . "\n" . '<section class="wp-block-group ts-contact__panel"><!-- wp:heading {"anchor":"ts-contact-email-title"} -->' . "\n" . '<h2 class="wp-block-heading" id="ts-contact-email-title">Email</h2>' . "\n" . '<!-- /wp:heading -->' . "\n\n" . '<!-- wp:paragraph -->' . "\n" . '<p>The contact form will arrive later. For now, this placeholder keeps the page ready without adding unnecessary machinery.</p>' . "\n" . '<!-- /wp:paragraph -->' . "\n\n" . '<!-- wp:shortcode -->' . "\n" . '[epiktetos_contact_email]' . "\n" . '<!-- /wp:shortcode --></section>' . "\n" . '<!-- /wp:group -->',
+				'<!-- wp:shortcode -->' . "\n" . '[epiktetos_social_links]' . "\n" . '<!-- /wp:shortcode -->',
+			);
+			return implode( "\n\n", $blocks );
 		}
 
 		public static function render_single_author_box( $author_id ) {
@@ -539,16 +673,16 @@ if ( ! class_exists( 'Epiktetos_Pages' ) ) {
 
 			$html  = '<section class="ts-about-pillars" aria-labelledby="ts-about-pillars-title">';
 			$html .= '<div class="ts-about-pillars__head">';
-			$html .= '<p class="ts-about__label">' . esc_html__( 'Editorial Pillars', 'epiktetos' ) . '</p>';
-			$html .= '<h2 id="ts-about-pillars-title">' . esc_html__( 'Four paths through the archive.', 'epiktetos' ) . '</h2>';
+			$html .= '<p class="ts-about__label">' . esc_html( epiktetos_label( 'about_pillars_label', __( 'Editorial Pillars', 'epiktetos' ) ) ) . '</p>';
+			$html .= '<h2 id="ts-about-pillars-title">' . esc_html( epiktetos_label( 'about_pillars_title', __( 'Four paths through the archive.', 'epiktetos' ) ) ) . '</h2>';
 			$html .= '</div>';
 			if ( empty( $cats ) ) {
-				$html .= '<p class="ts-about-pillars__empty">' . esc_html__( 'The archive is still taking shape.', 'epiktetos' ) . '</p>';
+				$html .= '<p class="ts-about-pillars__empty">' . esc_html( epiktetos_label( 'about_pillars_empty', __( 'The archive is still taking shape.', 'epiktetos' ) ) ) . '</p>';
 			} else {
 				$html .= '<div class="ts-about-pillars__grid">';
 				foreach ( $cats as $cat ) {
 					$desc = term_description( $cat->term_id, 'category' );
-					$desc = $desc ? trim( wp_strip_all_tags( $desc ) ) : sprintf( __( 'Essays and notes filed under %s.', 'epiktetos' ), $cat->name );
+					$desc = $desc ? trim( wp_strip_all_tags( $desc ) ) : str_replace( '%s', $cat->name, epiktetos_label( 'about_pillars_desc', __( 'Essays and notes filed under %s.', 'epiktetos' ) ) );
 					$html .= '<article class="ts-about-pillar">';
 					$html .= '<p class="ts-about-pillar__count">' . esc_html( self::article_count_label( (int) $cat->count ) ) . '</p>';
 					$html .= '<h3><a href="' . esc_url( get_category_link( $cat->term_id ) ) . '">' . esc_html( $cat->name ) . '</a></h3>';
@@ -588,8 +722,8 @@ if ( ! class_exists( 'Epiktetos_Pages' ) ) {
 
 			$html  = '<section class="ts-start-here" aria-labelledby="ts-start-here-title">';
 			$html .= '<div class="ts-start-here__head">';
-			$html .= '<h2 id="ts-start-here-title">' . esc_html__( 'Start Reading', 'epiktetos' ) . '</h2>';
-			$html .= '<p>' . esc_html__( 'The newest doorway into each major category.', 'epiktetos' ) . '</p>';
+			$html .= '<h2 id="ts-start-here-title">' . esc_html( epiktetos_label( 'about_start_title', __( 'Start Reading', 'epiktetos' ) ) ) . '</h2>';
+			$html .= '<p>' . esc_html( epiktetos_label( 'about_start_desc', __( 'The newest doorway into each major category.', 'epiktetos' ) ) ) . '</p>';
 			$html .= '</div>';
 			$html .= '<div class="ts-start-here__list">';
 			foreach ( $items as $item ) {
@@ -628,12 +762,12 @@ if ( ! class_exists( 'Epiktetos_Pages' ) ) {
 			$html  = '<section class="ts-about-author" aria-labelledby="ts-about-author-title">';
 			$html .= '<div class="ts-about-author__avatar">' . self::author_avatar( $author_id, 88, $name ) . '</div>';
 			$html .= '<div>';
-			$html .= '<h2 id="ts-about-author-title">' . esc_html__( 'Author', 'epiktetos' ) . '</h2>';
+			$html .= '<h2 id="ts-about-author-title">' . esc_html( epiktetos_label( 'about_author_title', __( 'Author', 'epiktetos' ) ) ) . '</h2>';
 			$html .= '<p class="ts-about-author__name">' . esc_html( $name ) . '</p>';
 			if ( $bio ) {
 				$html .= '<p>' . esc_html( $bio ) . '</p>';
 			}
-			$html .= '<p class="ts-about-author__archive"><a href="' . esc_url( get_author_posts_url( $author_id ) ) . '">' . esc_html__( 'Read the author archive', 'epiktetos' ) . '</a></p>';
+			$html .= '<p class="ts-about-author__archive"><a href="' . esc_url( get_author_posts_url( $author_id ) ) . '">' . esc_html( epiktetos_label( 'about_author_link', __( 'Read the author archive', 'epiktetos' ) ) ) . '</a></p>';
 			$html .= '</div>';
 			$html .= '</section>';
 
@@ -641,7 +775,7 @@ if ( ! class_exists( 'Epiktetos_Pages' ) ) {
 		}
 
 		protected static function render_page_newsletter() {
-			return '<section class="ts-page-newsletter" aria-labelledby="ts-page-newsletter-title"><h2 id="ts-page-newsletter-title">' . esc_html__( 'Newsletter', 'epiktetos' ) . '</h2><p>' . esc_html__( 'A short note when something worth reading is published. No noise, no performance theatre.', 'epiktetos' ) . '</p><form class="ts-news" method="post" action="#" novalidate><div class="ts-news__field"><input type="email" class="ts-news__input" name="email" placeholder="' . esc_attr__( 'Your email', 'epiktetos' ) . '" aria-label="' . esc_attr__( 'Email address', 'epiktetos' ) . '" inputmode="email" autocomplete="email" /><button type="submit" class="ts-news__submit" aria-label="' . esc_attr__( 'Subscribe', 'epiktetos' ) . '"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button></div></form><p class="ts-news__note" role="status" aria-live="polite">' . esc_html__( 'Subscribe via RSS while email delivery is offline.', 'epiktetos' ) . '</p></section>';
+			return '<section class="ts-page-newsletter" aria-labelledby="ts-page-newsletter-title"><h2 id="ts-page-newsletter-title">' . esc_html( epiktetos_label( 'about_newsletter_title', __( 'Newsletter', 'epiktetos' ) ) ) . '</h2><p>' . esc_html( epiktetos_label( 'about_newsletter_copy', __( 'A short note when something worth reading is published. No noise, no performance theatre.', 'epiktetos' ) ) ) . '</p><form class="ts-news" method="post" action="#" novalidate><div class="ts-news__field"><input type="email" class="ts-news__input" name="email" placeholder="' . esc_attr__( 'Your email', 'epiktetos' ) . '" aria-label="' . esc_attr__( 'Email address', 'epiktetos' ) . '" inputmode="email" autocomplete="email" /><button type="submit" class="ts-news__submit" aria-label="' . esc_attr__( 'Subscribe', 'epiktetos' ) . '"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button></div></form><p class="ts-news__note" role="status" aria-live="polite">' . esc_html( epiktetos_label( 'about_newsletter_note', __( 'Subscribe via RSS while email delivery is offline.', 'epiktetos' ) ) ) . '</p></section>';
 		}
 
 		protected static function render_social_links() {

@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EPIKTETOS_VERSION', '1.1.2' );
+define( 'EPIKTETOS_VERSION', '1.2.0' );
 define( 'EPIKTETOS_DIR', get_template_directory() );
 define( 'EPIKTETOS_URI', get_template_directory_uri() );
 
@@ -26,6 +26,18 @@ function epiktetos_asset_ver( $rel ) {
 	$path = EPIKTETOS_DIR . '/' . ltrim( $rel, '/' );
 	$mtime = file_exists( $path ) ? filemtime( $path ) : 0;
 	return $mtime ? (string) $mtime : EPIKTETOS_VERSION;
+}
+
+/**
+ * Resolve an editable shortcode-module label (Appearance → Epiktetos), falling
+ * back to the supplied default string when the module-labels class is missing.
+ *
+ * @param string $key     Module label key.
+ * @param string $default Fallback text.
+ * @return string
+ */
+function epiktetos_label( $key, $default = '' ) {
+	return class_exists( 'Epiktetos_Modules' ) ? Epiktetos_Modules::get( $key ) : $default;
 }
 
 /**
@@ -335,6 +347,16 @@ require_once EPIKTETOS_DIR . '/inc/header/class-epiktetos-header.php';
  * renders cleanly.
  */
 require_once EPIKTETOS_DIR . '/inc/hero/class-epiktetos-hero.php';
+
+/**
+ * Editable homepage copy (Appearance → Epiktetos → Homepage).
+ */
+require_once EPIKTETOS_DIR . '/inc/homepage/class-epiktetos-homepage.php';
+
+/**
+ * Editable labels for shortcode-rendered modules (Homepage + Editorial tabs).
+ */
+require_once EPIKTETOS_DIR . '/inc/modules/class-epiktetos-modules.php';
 
 /**
  * Homepage "Latest Articles" section ([epiktetos_latest_articles]).

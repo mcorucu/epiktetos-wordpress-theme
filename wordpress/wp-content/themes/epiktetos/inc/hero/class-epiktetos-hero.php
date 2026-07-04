@@ -88,7 +88,10 @@ if ( ! class_exists( 'Epiktetos_Hero' ) ) {
 			return (bool) apply_filters( 'epiktetos_hero_show_excerpt', true );
 		}
 		protected static function cta_label() {
-			return (string) apply_filters( 'epiktetos_hero_cta_label', __( 'Read article', 'epiktetos' ) );
+			$default = class_exists( 'Epiktetos_Homepage' )
+				? Epiktetos_Homepage::get( 'hero_cta_label' )
+				: __( 'Read article', 'epiktetos' );
+			return (string) apply_filters( 'epiktetos_hero_cta_label', $default );
 		}
 
 		/* ---------------- Render ---------------- */

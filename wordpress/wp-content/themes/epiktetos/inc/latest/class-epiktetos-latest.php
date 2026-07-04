@@ -79,10 +79,13 @@ if ( ! class_exists( 'Epiktetos_Latest' ) ) {
 				$rows .= self::render_row( $post );
 			}
 
+			$latest_title = class_exists( 'Epiktetos_Homepage' ) ? Epiktetos_Homepage::get( 'latest_title' ) : __( 'Latest Articles', 'epiktetos' );
+			$viewall_text = class_exists( 'Epiktetos_Homepage' ) ? Epiktetos_Homepage::get( 'viewall_text' ) : __( 'View all', 'epiktetos' );
+
 			$heading = '<div class="ts-latest__head">'
-				. '<h2 class="ts-latest__title" id="ts-latest-title">' . esc_html__( 'Latest Articles', 'epiktetos' ) . '</h2>'
+				. '<h2 class="ts-latest__title" id="ts-latest-title">' . esc_html( $latest_title ) . '</h2>'
 				. '<div class="ts-latest__viewall"><a href="' . esc_url( home_url( '/' ) ) . '">'
-				. esc_html__( 'View all', 'epiktetos' )
+				. esc_html( $viewall_text )
 				. '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>'
 				. '</a></div>'
 				. '</div>';
@@ -141,7 +144,7 @@ if ( ! class_exists( 'Epiktetos_Latest' ) ) {
 			$excerpt_html = $excerpt ? '<p class="ts-row__excerpt">' . esc_html( $excerpt ) . '</p>' : '';
 
 			$more = '<div class="ts-row__more"><a class="ts-row__more-link" href="' . esc_url( $permalink ) . '">'
-				. esc_html__( 'Read more', 'epiktetos' )
+				. esc_html( epiktetos_label( 'latest_read_more', __( 'Read more', 'epiktetos' ) ) )
 				. '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>'
 				. '</a></div>';
 
@@ -178,18 +181,17 @@ if ( ! class_exists( 'Epiktetos_Latest' ) ) {
 				}
 			}
 
+			$topics_head = class_exists( 'Epiktetos_Homepage' ) ? Epiktetos_Homepage::get( 'sidebar_topics_title' ) : __( 'Topics', 'epiktetos' );
+
+			// The Editor's Note is now an editable block in the Home page content
+			// (see Epiktetos_Homepage::home_default_content), so the sidebar begins
+			// with the Topics module.
 			$s  = '<aside class="ts-latest__sidebar" aria-label="' . esc_attr__( 'Editorial', 'epiktetos' ) . '">';
 
-			// 1. Editor's Note.
-			$s .= '<div class="ts-side ts-side--note">';
-			$s .= '<h3 class="ts-side__title">' . esc_html__( 'Editor’s Note', 'epiktetos' ) . '</h3>';
-			$s .= '<p class="ts-side__text">' . esc_html__( 'Epiktetos is a quiet journal on technology, philosophy, psychology, and history — slow essays for the reader who arrives unhurried, and stays.', 'epiktetos' ) . '</p>';
-			$s .= '</div>';
-
-			// 2. Topics.
+			// Topics.
 			if ( $topics ) {
 				$s .= '<div class="ts-side ts-side--topics">';
-				$s .= '<h3 class="ts-side__title">' . esc_html__( 'Topics', 'epiktetos' ) . '</h3>';
+				$s .= '<h3 class="ts-side__title">' . esc_html( $topics_head ) . '</h3>';
 				$s .= '<ul class="ts-side__topics">' . $topics . '</ul>';
 				$s .= '</div>';
 			}

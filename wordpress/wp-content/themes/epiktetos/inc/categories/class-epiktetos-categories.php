@@ -307,7 +307,7 @@ if ( ! class_exists( 'Epiktetos_Categories' ) ) {
 			}
 			$head .= '</div>';
 			$head .= '<div class="ts-cat__viewall"><a href="' . esc_url( $archive ) . '">'
-				. esc_html( sprintf( /* translators: %s category name */ __( 'View all', 'epiktetos' ) ) )
+				. esc_html( epiktetos_label( 'showcase_view_all', __( 'View all', 'epiktetos' ) ) )
 				. '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>'
 				. '</a></div>';
 			$head .= '</div>';
@@ -406,7 +406,9 @@ if ( ! class_exists( 'Epiktetos_Categories' ) ) {
 				: wp_trim_words( wp_strip_all_tags( $post->post_content ), $words );
 			$excerpt_html = $excerpt ? '<p class="ts-cat__excerpt">' . esc_html( $excerpt ) . '</p>' : '';
 
-			$cta_label = $featured ? __( 'Read Article', 'epiktetos' ) : __( 'Read More', 'epiktetos' );
+			$cta_label = $featured
+				? epiktetos_label( 'showcase_cta_featured', __( 'Read Article', 'epiktetos' ) )
+				: epiktetos_label( 'showcase_cta', __( 'Read More', 'epiktetos' ) );
 			$more = '<div class="ts-cat__more"><a class="ts-cat__more-link" href="' . esc_url( $permalink ) . '">'
 				. esc_html( $cta_label )
 				. '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>'
