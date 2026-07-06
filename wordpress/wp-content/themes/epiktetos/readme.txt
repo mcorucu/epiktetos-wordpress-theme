@@ -3,7 +3,7 @@ Contributors: mcorucu
 Requires at least: 6.5
 Tested up to: 7.0
 Requires PHP: 8.0
-Stable tag: 1.2.0
+Stable tag: 1.2.1
 License: GNU General Public License v2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Tags: blog, one-column, editor-style, block-styles, full-site-editing, custom-colors, custom-menu
@@ -60,6 +60,12 @@ Yes. All strings use the "epiktetos" text domain and the theme loads translation
 
 == Changelog ==
 
+= 1.2.1 =
+* Fixed Latest Articles so it shows the latest four published blog posts, ordered newest first.
+* Fixed the Latest Articles "View all" link so it targets the configured posts index page instead of the static homepage.
+* Improved Latest Articles excerpt handling: manual excerpts are preferred; otherwise clean trimmed text is generated from post content.
+* Added an Articles page to bundled Sample Content and set it as the posts index for static homepage setups.
+
 = 1.2.0 =
 * Fixed Latest Articles thumbnail cropping so portrait, landscape, and square featured images fill a consistent frame with no blank area under the image; applied the same fix to archive/category/tag/search post cards.
 * Added Theme Settings controls for the visible labels used by the shortcode-rendered modules (Homepage Latest/Showcase/sidebar, Topics index, and About modules), under the Homepage and Editorial tabs.
@@ -104,6 +110,9 @@ Yes. All strings use the "epiktetos" text domain and the theme loads translation
 * Setup wizard, theme settings, Sample Content tools, and a release validator.
 
 == Upgrade Notice ==
+
+= 1.2.1 =
+Fixes the Homepage Latest Articles query, excerpts, and posts-index "View all" link for static homepage setups.
 
 = 1.2.0 =
 Makes the Homepage, Topics, About, and Contact copy editable from WordPress Pages and Epiktetos Theme Settings, with the existing design preserved.

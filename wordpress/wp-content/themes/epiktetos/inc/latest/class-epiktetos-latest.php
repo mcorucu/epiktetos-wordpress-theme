@@ -34,33 +34,79 @@ if ( ! class_exists( 'Epiktetos_Latest' ) ) {
 
 		/** How many article rows to show. Filterable. */
 		protected static function count() {
-			return (int) apply_filters( 'epiktetos_latest_count', 5 );
+			return max( 1, (int) apply_filters( 'epiktetos_latest_count', 4 ) );
 		}
 
 		/**
-		 * Recent posts, excluding the posts already featured in the hero so
-		 * the homepage never shows the same article twice.
+		 * Latest published posts for the homepage module.
 		 *
 		 * @return WP_Post[]
 		 */
 		protected static function get_posts() {
-			$exclude = class_exists( 'Epiktetos_Hero' ) ? Epiktetos_Hero::lead_post_ids() : array();
-
 			$args = array(
-				'numberposts'         => self::count(),
+				'post_type'           => 'post',
 				'post_status'         => 'publish',
+				'numberposts'         => self::count(),
+				'posts_per_page'      => self::count(),
+				'orderby'             => 'date',
+				'order'               => 'DESC',
 				'ignore_sticky_posts' => true,
-				'post__not_in'        => $exclude,
 				'suppress_filters'    => false,
 			);
 
-			// Keep the default "Uncategorized" bucket out of the editorial grid.
-			$default_cat = (int) get_option( 'default_category' );
-			if ( $default_cat ) {
-				$args['category__not_in'] = array( $default_cat );
+			return get_posts( $args );
+		}
+
+		/**
+		 * Resolve the URL for the complete posts index.
+		 *
+		 * @return string
+		 */
+		protected static function posts_index_url() {
+			$url = '';
+
+			$posts_page_id = (int) get_option( 'page_for_posts' );
+			if ( $posts_page_id && 'publish' === get_post_status( $posts_page_id ) ) {
+				$url = get_permalink( $posts_page_id );
 			}
 
-			return get_posts( $args );
+			if ( ! $url ) {
+				foreach ( array( 'articles', 'blog' ) as $slug ) {
+					$page = get_page_by_path( $slug, OBJECT, 'page' );
+					if ( $page && 'publish' === get_post_status( $page ) ) {
+						$url = get_permalink( $page );
+						break;
+					}
+				}
+			}
+
+			if ( ! $url ) {
+				$archive = get_post_type_archive_link( 'post' );
+				if ( $archive && home_url( '/' ) !== $archive ) {
+					$url = $archive;
+				}
+			}
+
+			if ( ! $url ) {
+				$url = home_url( '/' );
+			}
+
+			return (string) apply_filters( 'epiktetos_latest_posts_index_url', $url );
+		}
+
+		/**
+		 * Build a clean editorial excerpt for the Latest Articles module.
+		 *
+		 * @param WP_Post $post Post object.
+		 * @return string
+		 */
+		protected static function excerpt_text( $post ) {
+			$source = has_excerpt( $post ) ? get_the_excerpt( $post ) : $post->post_content;
+			$source = strip_shortcodes( (string) $source );
+			$source = wp_strip_all_tags( $source, true );
+			$source = html_entity_decode( $source, ENT_QUOTES, get_bloginfo( 'charset' ) );
+
+			return trim( wp_trim_words( $source, (int) apply_filters( 'epiktetos_latest_excerpt_words', 30 ), '' ) );
 		}
 
 		/**
@@ -84,7 +130,7 @@ if ( ! class_exists( 'Epiktetos_Latest' ) ) {
 
 			$heading = '<div class="ts-latest__head">'
 				. '<h2 class="ts-latest__title" id="ts-latest-title">' . esc_html( $latest_title ) . '</h2>'
-				. '<div class="ts-latest__viewall"><a href="' . esc_url( home_url( '/' ) ) . '">'
+				. '<div class="ts-latest__viewall"><a href="' . esc_url( self::posts_index_url() ) . '">'
 				. esc_html( $viewall_text )
 				. '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>'
 				. '</a></div>'
@@ -137,10 +183,7 @@ if ( ! class_exists( 'Epiktetos_Latest' ) ) {
 			}
 			$meta .= '</div>';
 
-			// Longer excerpt (~28–34 words); fall back to trimmed content.
-			$excerpt = has_excerpt( $post )
-				? get_the_excerpt( $post )
-				: wp_trim_words( wp_strip_all_tags( $post->post_content ), 34 );
+			$excerpt = self::excerpt_text( $post );
 			$excerpt_html = $excerpt ? '<p class="ts-row__excerpt">' . esc_html( $excerpt ) . '</p>' : '';
 
 			$more = '<div class="ts-row__more"><a class="ts-row__more-link" href="' . esc_url( $permalink ) . '">'

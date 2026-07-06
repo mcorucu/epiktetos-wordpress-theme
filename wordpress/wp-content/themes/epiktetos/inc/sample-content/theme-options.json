@@ -97,7 +97,7 @@
     "reading": {
         "show_on_front": "page",
         "page_on_front_slug": "home",
-        "page_for_posts_slug": "",
+        "page_for_posts_slug": "articles",
         "permalink_structure": "/%postname%/"
     }
 }

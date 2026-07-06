@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to semantic versioning.
 
+## [1.2.1] - 2026-07-06
+
+### Fixed
+
+- Latest Articles now shows the latest four published blog posts, ordered by publish date newest first.
+- Latest Articles no longer drops posts because they appeared in the hero or belong to the default category.
+- Latest Articles "View all" now resolves to the configured posts index page instead of the static homepage.
+- Latest Articles excerpts now prefer manual excerpts and otherwise generate clean trimmed text from post content.
+
+### Added
+
+- Bundled Sample Content now includes an Articles page and configures it as the posts index for static homepage setups.
+
 ## [1.2.0] - 2026-07-03
 
 ### Fixed

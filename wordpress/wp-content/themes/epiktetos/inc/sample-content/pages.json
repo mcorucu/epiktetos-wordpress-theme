@@ -30,6 +30,16 @@
         "featured_media": ""
     },
     {
+        "slug": "articles",
+        "title": "Articles",
+        "date": "2026-07-06 12:00:00",
+        "menu_order": 0,
+        "excerpt": "",
+        "content": "<!-- wp:paragraph {\"className\":\"ts-page__eyebrow\"} -->\n<p class=\"ts-page__eyebrow\">Archive</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:heading {\"level\":1,\"anchor\":\"ts-articles-title\",\"className\":\"ts-page__title\"} -->\n<h1 class=\"wp-block-heading ts-page__title\" id=\"ts-articles-title\">Articles</h1>\n<!-- /wp:heading -->\n\n<!-- wp:paragraph {\"className\":\"ts-page__dek\"} -->\n<p class=\"ts-page__dek\">The full essay archive, ordered from newest to oldest.</p>\n<!-- /wp:paragraph -->",
+        "template": "",
+        "featured_media": ""
+    },
+    {
         "slug": "saved",
         "title": "Saved",
         "date": "2026-06-25 12:54:06",
