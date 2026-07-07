@@ -3,7 +3,7 @@ Contributors: mcorucu
 Requires at least: 6.5
 Tested up to: 7.0
 Requires PHP: 8.0
-Stable tag: 1.2.1
+Stable tag: 1.2.2
 License: GNU General Public License v2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Tags: blog, one-column, editor-style, block-styles, full-site-editing, custom-colors, custom-menu
@@ -60,6 +60,10 @@ Yes. All strings use the "epiktetos" text domain and the theme loads translation
 
 == Changelog ==
 
+= 1.2.2 =
+* Fixed homepage section divider spacing between Latest Articles and the first category showcase heading.
+* Improved homepage editorial section rhythm on desktop, tablet, and mobile without changing content, queries, or category logic.
+
 = 1.2.1 =
 * Fixed Latest Articles so it shows the latest four published blog posts, ordered newest first.
 * Fixed the Latest Articles "View all" link so it targets the configured posts index page instead of the static homepage.
@@ -110,6 +114,9 @@ Yes. All strings use the "epiktetos" text domain and the theme loads translation
 * Setup wizard, theme settings, Sample Content tools, and a release validator.
 
 == Upgrade Notice ==
+
+= 1.2.2 =
+Fixes homepage divider spacing between Latest Articles and the first category showcase heading.
 
 = 1.2.1 =
 Fixes the Homepage Latest Articles query, excerpts, and posts-index "View all" link for static homepage setups.

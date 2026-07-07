@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EPIKTETOS_VERSION', '1.2.1' );
+define( 'EPIKTETOS_VERSION', '1.2.2' );
 define( 'EPIKTETOS_DIR', get_template_directory() );
 define( 'EPIKTETOS_URI', get_template_directory_uri() );
 

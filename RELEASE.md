@@ -1,15 +1,13 @@
-# Epiktetos 1.2.1 Release Notes
+# Epiktetos 1.2.2 Release Notes
 
-Epiktetos 1.2.1 is a focused maintenance release for the Homepage Latest Articles module in static-homepage setups.
+Epiktetos 1.2.2 is a focused CSS maintenance release for the homepage editorial section rhythm.
 
-## What's Fixed in 1.2.1
+## What's Fixed in 1.2.2
 
-- Latest Articles now queries the newest four published posts directly, using `post_type=post`, `post_status=publish`, date-descending order, and `ignore_sticky_posts`.
-- The module no longer excludes hero posts or the default category, so a small production site still shows all available latest posts up to four.
-- "View all" now links to the configured WordPress posts page (`page_for_posts`) when available, with safe fallbacks for Articles/Blog pages.
-- Excerpts now prefer a manual excerpt and otherwise generate clean trimmed text from post content with shortcodes and markup stripped.
-- Bundled Sample Content includes an Articles page and configures it as the posts index for static homepage setups.
-- The v1.2.0 Gutenberg-editable Homepage/About/Topics/Contact architecture is preserved.
+- The divider between the Latest Articles module and the first Category Showcase section now has proper breathing room before the category heading.
+- The fix is scoped to the homepage content column: `.ts-home__content .ts-cats__inner`.
+- Mobile receives a slightly tighter matching rhythm through the existing `max-width: 600px` homepage rules.
+- Content, post queries, category logic, Gutenberg-editable pages, Article Voiceover, thumbnail cropping, and Theme Settings behavior are unchanged.
 
 ## Highlights
 

@@ -1546,7 +1546,7 @@ body.epiktetos-header-sticky.epiktetos-header-solid {
 .ts-home__content .ts-latest,
 .ts-home__content .ts-cats { border-top: 0; }
 .ts-home__content .ts-latest__inner { max-width: none; margin: 0; padding: var(--ts-space-5) 0 var(--ts-space-6); }
-.ts-home__content .ts-cats__inner { max-width: none; margin: 0; padding: 0 0 var(--ts-space-6); }
+.ts-home__content .ts-cats__inner { max-width: none; margin: 0; padding: var(--ts-space-5) 0 var(--ts-space-6); }
 .ts-home__content .ts-cats { border-top: 1px solid var(--ts-border-subtle); }
 
 /* ---- Article list (left) ---- */
@@ -1826,6 +1826,7 @@ body.epiktetos-header-sticky.epiktetos-header-solid {
 @media (max-width: 600px) {
 	.ts-home { padding: 0 var(--ts-space-2); }
 	.ts-home__content .ts-latest__inner { padding: var(--ts-space-4) 0 var(--ts-space-5); }
+	.ts-home__content .ts-cats__inner { padding: var(--ts-space-4) 0 var(--ts-space-5); }
 	.ts-row {
 		grid-template-columns: 1fr;
 		gap: var(--ts-space-2);

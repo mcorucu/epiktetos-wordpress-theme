@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to semantic versioning.
 
+## [1.2.2] - 2026-07-07
+
+### Fixed
+
+- Fixed homepage section divider spacing between Latest Articles and the first category showcase heading.
+- Improved homepage editorial section rhythm on desktop, tablet, and mobile without changing content, queries, or category logic.
+
 ## [1.2.1] - 2026-07-06
 
 ### Fixed
